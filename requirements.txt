@@ -1,3 +1,7 @@
+# local package
+-e .
+
+# project
 jupyter
 numpy
 scipy
@@ -5,3 +9,4 @@ pandas
 matplotlib
 tqdm
 openpyxl
+pytest
