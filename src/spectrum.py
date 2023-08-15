@@ -40,9 +40,10 @@ class Spectrum:
 
         if self.bin_values_f.size != 0:
             # yfy = y * f(y)
-            object.__setattr__(self, 'bin_values_yfy', self.bin_values_f * self.bin_centers)
+            object.__setattr__(self, 'bin_values_yfy', self.bin_centers * self.bin_values_f)
             # ydy = (y / yF) * f(y)
-            object.__setattr__(self, 'bin_values_ydy', self.bin_values_f * self.bin_centers**2)
+            yF = first_moment(self.bin_centers, self.bin_values_f)
+            object.__setattr__(self, 'bin_values_ydy', (self.bin_centers / yF) * self.bin_values_f)
         if self.bin_values_yfy.size != 0:
             # f = yfy / y
             object.__setattr__(self, 'bin_values_f', self.bin_values_yfy / self.bin_centers)
@@ -73,6 +74,10 @@ class Spectrum:
     @property
     def f_sum(self):
         return self.bin_values_f.sum()
+    
+    @property
+    def yF(self):
+        return first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_f)
 
     @classmethod
     def from_lists(cls, bin_centers_list : list, bin_values_list : list =None, bin_values_yfy_list: list=None, bin_values_ydy_list: list=None):
