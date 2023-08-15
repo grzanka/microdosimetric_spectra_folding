@@ -21,11 +21,11 @@ def test_first_moment_with_zeros():
         first_moment(bin_centers, bin_values)
 
 def test_moment_olko_phd_thesis_fig3p3(spectrum_fig3p3_olko_phd):
-    result = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_f)
+    result = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_fy)
     expected_result = 2
     assert result == pytest.approx(expected_result)
     # check normalized spectrum as well
-    result_from_normalized = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_f_normalized)
+    result_from_normalized = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_fy_normalized)
     assert result_from_normalized == pytest.approx(expected_result)
 
 
