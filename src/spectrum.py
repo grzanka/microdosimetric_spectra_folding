@@ -1,4 +1,5 @@
-from dataclasses import dataclass, InitVar, field
+from dataclasses import dataclass, field
+import logging
 import numpy as np
 from numpy.typing import NDArray
 
@@ -38,18 +39,23 @@ class Spectrum:
         if self.bin_values_f.size != 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0:
             raise ValueError("Only one of bin_values_f, bin_values_yfy, bin_values_ydy must be initialized (not three)")
 
-        if self.bin_values_f.size != 0:
+        f_initialized = self.bin_values_f.size != 0
+        yfy_initialized = self.bin_values_yfy.size != 0
+        ydy_initialized = self.bin_values_ydy.size != 0
+        if f_initialized:
+            logging.debug("bin_values_f is initialized to {}".format(self.bin_values_f))
             # yfy = y * f(y)
-            object.__setattr__(self, 'bin_values_yfy', self.bin_centers * self.bin_values_f)
-            # ydy = (y / yF) * f(y)
-            yF = first_moment(self.bin_centers, self.bin_values_f)
-            object.__setattr__(self, 'bin_values_ydy', (self.bin_centers / yF) * self.bin_values_f)
-        if self.bin_values_yfy.size != 0:
-            # f = yfy / y
-            object.__setattr__(self, 'bin_values_f', self.bin_values_yfy / self.bin_centers)
-            # ydy = yfy * y
-            object.__setattr__(self, 'bin_values_ydy', self.bin_values_yfy * self.bin_centers)
-        if self.bin_values_ydy.size != 0:
+            object.__setattr__(self, 'bin_values_yfy', self.y * self.fy)
+            # ydy = (y / yF) * f(y)            
+            object.__setattr__(self, 'bin_values_ydy', (self.y / self.yF) * self.fy)
+        if yfy_initialized:
+            logging.debug("bin_values_yfy is initialized to {}".format(self.bin_values_yfy))
+            # yfy = y * f(y)   =>    f = yfy / y
+            object.__setattr__(self, 'bin_values_f', self.yfy / self.y)
+            # ydy = (y / yF) * f(y)   =>   
+            object.__setattr__(self, 'bin_values_ydy', (self.y / self.yF) * self.fy)
+        if ydy_initialized:
+            logging.debug("bin_values_ydy is initialized to {}".format(self.bin_values_ydy))
             object.__setattr__(self, 'bin_values_f', self.bin_values_ydy / self.bin_centers**2)
             object.__setattr__(self, 'bin_values_yfy', self.bin_values_ydy / self.bin_centers)
 
@@ -57,7 +63,7 @@ class Spectrum:
         if self.bin_values_f.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
         
-        # set normalized values
+        # # set normalized values
         object.__setattr__(self, 'bin_values_f_normalized', self.bin_values_f / self.bin_values_f.sum())
         object.__setattr__(self, 'bin_values_yfy_normalized', self.bin_values_f_normalized * self.bin_centers)
         object.__setattr__(self, 'bin_values_ydy_normalized', self.bin_values_f_normalized * self.bin_centers**2)
@@ -77,12 +83,28 @@ class Spectrum:
     
     @property
     def yF(self):
-        return first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_f)
+        return first_moment(bin_centers=self.y, bin_values=self.fy)
+    
+    @property
+    def y(self):
+        return self.bin_centers
+    
+    @property
+    def fy(self):
+        return self.bin_values_f
 
+    @property
+    def yfy(self):
+        return self.bin_values_yfy
+    
+    @property
+    def ydy(self):
+        return self.bin_values_ydy
+    
     @classmethod
-    def from_lists(cls, bin_centers_list : list, bin_values_list : list =None, bin_values_yfy_list: list=None, bin_values_ydy_list: list=None):
+    def from_lists(cls, bin_centers_list : list, bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
         bin_centers = np.array(bin_centers_list)
-        bin_values_f = np.array(bin_values_list) if bin_values_list is not None else np.empty(0)
-        bin_values_yfy = np.array(bin_values_yfy_list) if bin_values_yfy_list is not None else np.empty(0)
-        bin_values_ydy = np.array(bin_values_ydy_list) if bin_values_ydy_list is not None else np.empty(0)
-        return cls(bin_centers, bin_values_f, bin_values_yfy, bin_values_ydy)
+        bin_values_f = np.array(bin_values_list) if bin_values_list else np.empty(0)
+        bin_values_yfy = np.array(bin_values_yfy_list) if bin_values_yfy_list else np.empty(0)
+        bin_values_ydy = np.array(bin_values_ydy_list) if bin_values_ydy_list else np.empty(0)
+        return cls(bin_centers = bin_centers, bin_values_f=bin_values_f, bin_values_yfy=bin_values_yfy, bin_values_ydy=bin_values_ydy)
