@@ -3,10 +3,10 @@ import numpy as np
 
 @dataclass(frozen=True)
 class Spectrum:
-    bin_centers: np.array = np.empty(0)
-    bin_values_f: np.array = np.empty(0)
-    bin_values_yfy: np.array = np.empty(0)
-    bin_values_ydy: np.array = np.empty(0)
+    bin_centers: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_f: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_yfy: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_ydy: np.array = field(default_factory=lambda: np.empty(0))
     def __post_init__(self):
         if self.bin_centers.size == 0:
             raise ValueError("bin_centers must be initialized")

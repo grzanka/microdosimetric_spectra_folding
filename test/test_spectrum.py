@@ -1,6 +1,19 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum  # Assuming your class is defined in a file named 'spectrum.py'
+from src.spectrum import Spectrum
+
+
+@pytest.fixture
+def small_spectrum() -> Spectrum:
+    bin_centers = [1, 2, 3, 4]
+    bin_values_f = [0.1, 0.2, 0.3, 0.4]
+    return Spectrum.from_lists(bin_centers, bin_values_list=bin_values_f)
+
+def test_bin_centers(small_spectrum: Spectrum):
+    assert np.array_equal(small_spectrum.bin_centers, np.array([1, 2, 3, 4]))
+
+def test_sum_of_f(small_spectrum: Spectrum):
+    assert small_spectrum.bin_values_f.sum() == pytest.approx(1.0)
 
 def test_creation_from_lists():
     bin_centers = [1, 2, 3, 4, 5]
