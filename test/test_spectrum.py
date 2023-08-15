@@ -9,11 +9,24 @@ def small_spectrum() -> Spectrum:
     bin_values_f = [0.1, 0.2, 0.3, 0.4]
     return Spectrum.from_lists(bin_centers, bin_values_list=bin_values_f)
 
+
+@pytest.fixture
+def not_normalised_spectrum() -> Spectrum:
+    bin_centers = [1, 2, 3, 4]
+    bin_values_f = [1, 2, 3, 4]
+    return Spectrum.from_lists(bin_centers, bin_values_list=bin_values_f)
+
 def test_bin_centers(small_spectrum: Spectrum):
     assert np.array_equal(small_spectrum.bin_centers, np.array([1, 2, 3, 4]))
 
 def test_sum_of_f(small_spectrum: Spectrum):
     assert small_spectrum.bin_values_f.sum() == pytest.approx(1.0)
+    assert small_spectrum.f_sum == pytest.approx(1.0)
+
+def test_normalized_f(not_normalised_spectrum: Spectrum):
+    assert not_normalised_spectrum.bin_values_f.sum() == pytest.approx(10.0)
+    assert not_normalised_spectrum.f_sum == pytest.approx(10.0)
+    assert not_normalised_spectrum.bin_values_f_normalized.sum() == pytest.approx(1.0)
 
 def test_creation_from_lists():
     bin_centers = [1, 2, 3, 4, 5]
