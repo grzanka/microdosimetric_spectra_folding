@@ -74,6 +74,7 @@ class Spectrum:
             raise ValueError("Sum of bin_values_f must be positive")
         
         # # set normalized values
+        logging.debug("self.fy is initialized to {}".format(self.fy))
         logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
         object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.fy.sum())
         logging.debug("bin_values_fy_normalized is initialized to {}".format(self.bin_values_fy_normalized))
@@ -129,7 +130,7 @@ class Spectrum:
         return self.bin_values_fy_normalized
 
     @property
-    def fy_norm(self):
+    def dy_norm(self):
         return self.bin_values_dy_normalized
 
     @property

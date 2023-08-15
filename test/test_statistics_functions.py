@@ -28,6 +28,5 @@ def test_moment_olko_phd_thesis_fig3p3(spectrum_fig3p3_olko_phd):
     result_from_normalized = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_fy_normalized)
     assert result_from_normalized == pytest.approx(expected_result)
 
-
 def test_yF(spectrum_fig3p3_olko_phd):
     assert spectrum_fig3p3_olko_phd.yF == pytest.approx(2.0)
