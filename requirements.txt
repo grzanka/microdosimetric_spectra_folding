@@ -11,3 +11,4 @@ tqdm
 openpyxl
 pytest
 mkdocs
+mkdocs-coverage
