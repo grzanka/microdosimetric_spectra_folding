@@ -10,3 +10,4 @@ matplotlib
 tqdm
 openpyxl
 pytest
+mkdocs
