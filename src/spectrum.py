@@ -1,9 +1,17 @@
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from io import StringIO
 import logging
+from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+
+class SpectrumValueType(Enum):
+    '''Enum class for spectrum value types.'''
+    fy = auto()
+    yfy = auto()
+    ydy = auto()
 
 def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
     '''Calculate the first moment of a spectrum. It may be not normalized.'''
@@ -29,11 +37,11 @@ class Spectrum:
     bin_values_ydy_normalized: np.array = field(default_factory=lambda: np.empty(0))
 
     def __post_init__(self):
-        if self.bin_centers.size == 0:
-            raise ValueError("bin_centers must be initialized")
+        # if self.bin_centers.size == 0:
+        #     raise ValueError("bin_centers must be initialized")
         
-        if self.bin_values_fy.size == 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size == 0:
-            raise ValueError("At least one of bin_values_fy, bin_values_yfy, bin_values_ydy must be initialized (not zero)")
+        # if self.bin_values_fy.size == 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size == 0:
+        #     raise ValueError("At least one of bin_values_fy, bin_values_yfy, bin_values_ydy must be initialized (not zero)")
         if self.bin_values_fy.size == 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0 \
                 or self.bin_values_fy.size != 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size != 0 \
                 or self.bin_values_fy.size != 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size == 0:
@@ -67,20 +75,21 @@ class Spectrum:
         if ydy_initialized:
             raise NotImplementedError("deriving spectrum from ydy is not implemented yet")
 
-        # check if sum of bin_values_f is positive
-        if self.bin_values_fy.sum() <= 0:
+        # if bin values are initialized then sum of bin_values_fy must be positive
+        if self.bin_values_fy.size > 0 and self.bin_values_fy.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
         
-        # set normalized values
-        logging.debug("self.fy is initialized to {}".format(self.fy))
-        logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
-        object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.fy.sum())
-        logging.debug("bin_values_fy_normalized is initialized to {}".format(self.bin_values_fy_normalized))
-        logging.debug("(self.y / self.yF) is initialized to {}".format((self.y / self.yF)))
-        logging.debug("self.fy_norm is initialized to {}".format((self.fy_norm)))
-        object.__setattr__(self, 'bin_values_dy_normalized', (self.y / self.yF) * self.bin_values_fy_normalized)
-        object.__setattr__(self, 'bin_values_yfy_normalized', self.y * self.fy_norm)
-        object.__setattr__(self, 'bin_values_ydy_normalized', self.y * self.bin_values_dy_normalized)
+        # set normalized values if bin_centers are initialized
+        if self.bin_centers.size > 0 and self.bin_values_fy.size > 0:
+            logging.debug("self.fy is initialized to {}".format(self.fy))
+            logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
+            object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.fy.sum())
+            logging.debug("bin_values_fy_normalized is initialized to {}".format(self.bin_values_fy_normalized))
+            logging.debug("(self.y / self.yF) is initialized to {}".format((self.y / self.yF)))
+            logging.debug("self.fy_norm is initialized to {}".format((self.fy_norm)))
+            object.__setattr__(self, 'bin_values_dy_normalized', (self.y / self.yF) * self.bin_values_fy_normalized)
+            object.__setattr__(self, 'bin_values_yfy_normalized', self.y * self.fy_norm)
+            object.__setattr__(self, 'bin_values_ydy_normalized', self.y * self.bin_values_dy_normalized)
 
         if len(self.bin_centers) != len(self.bin_values_fy) \
                 or len(self.bin_centers) != len(self.bin_values_yfy) \
@@ -156,8 +165,7 @@ class Spectrum:
         
         return output
     
-def from_str_with_fy(data_string : str) -> Spectrum:
-    data_array = np.genfromtxt(StringIO(data_string))
+def check_if_array_holds_spectrum(data_array: NDArray):
     if data_array.size == 0:
         raise ValueError("data_string must contain at least one row")
     if data_array.ndim != 2:
@@ -166,5 +174,29 @@ def from_str_with_fy(data_string : str) -> Spectrum:
     if data_array.shape[1] != 2:
         logging.debug("data_array.shape is {}".format(data_array.shape))
         raise ValueError("data_string must contain two columns")
-    result = Spectrum(bin_centers=data_array[:,0], bin_values_fy=data_array[:,1])
+
+def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValueType.yfy) -> Spectrum:
+    '''Load spectrum from array. The array must contain two columns: bin_centers and bin_values_fy.'''
+    check_if_array_holds_spectrum(data_array)
+    result = Spectrum()
+    if value_type == SpectrumValueType.fy:
+        result = Spectrum(bin_centers=data_array[:,0], bin_values_fy=data_array[:,1])
+    elif value_type == SpectrumValueType.yfy:
+        result = Spectrum(bin_centers=data_array[:,0], bin_values_yfy=data_array[:,1])
+    elif value_type == SpectrumValueType.ydy:
+        result = Spectrum(bin_centers=data_array[:,0], bin_values_ydy=data_array[:,1])
+    return result
+
+def from_str(data_string : str, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:
+    '''Load spectrum from string. The string must contain two columns: bin_centers and bin_values_fy.'''
+    data_array = np.genfromtxt(StringIO(data_string), **kwargs)
+    check_if_array_holds_spectrum(data_array)
+    result = from_array(data_array, value_type)
+    return result
+
+def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:
+    '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values_fy.'''
+    data_array = np.genfromtxt(file_path, **kwargs)
+    check_if_array_holds_spectrum(data_array)
+    result = from_array(data_array, value_type)
     return result

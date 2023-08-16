@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, from_str_with_fy
+from src.spectrum import Spectrum, from_str
 
 
 @pytest.fixture
@@ -15,6 +15,10 @@ def not_normalised_spectrum() -> Spectrum:
     bin_centers = [1, 2, 3, 4]
     bin_values_fy = [1, 2, 3, 4]
     return Spectrum.from_lists(bin_centers_list=bin_centers, bin_values_list=bin_values_fy)
+
+def test_empty_spectrum():
+    empty_spectrum = Spectrum()
+    assert empty_spectrum.num_bins == 0
 
 def test_bin_centers(small_spectrum: Spectrum):
     assert np.array_equal(small_spectrum.bin_centers, np.array([1, 2, 3, 4]))
@@ -42,9 +46,6 @@ def test_creation_from_lists(spectrum_fig3p3_olko_phd):
     assert np.array_equal(spectrum.ydy, spectrum_fig3p3_olko_phd.ydy)
 
 def test_invalid_initialization():
-    with pytest.raises(ValueError):
-        Spectrum()
-
     bin_centers = [1, 2, 3, 4, 5]
     bin_values_fy = [3, 6, 2, 8, 5]
     bin_values_yfy = [2, 4, 6, 8, 10]
@@ -67,13 +68,16 @@ def test_if_printout_has_multiple_lines(small_spectrum: Spectrum, capsys):
 def test_loading_from_str_with_fy():
     empty_str = ""
     with pytest.raises(ValueError):
-        from_str_with_fy(empty_str)
+        from_str(empty_str)
     corrupts_str = "1 2 3 4 5 6 7 8 9 10"
     with pytest.raises(ValueError):
-        from_str_with_fy(corrupts_str)
+        from_str(corrupts_str)
     two_rows_str = "1 2 3 4 5 6 7 8 9 10\n1 2 3 4 5 6 7 8 9 10"
     with pytest.raises(ValueError):
-        from_str_with_fy(two_rows_str)
+        from_str(two_rows_str)
     two_colums_str = "1 2\n3 4\n5 6\n7 8\n9 10"
-    spectrum = from_str_with_fy(two_colums_str)
+    spectrum = from_str(two_colums_str)
+    assert spectrum.num_bins == 5
+    str_with_commas = "1,2\n3,4\n5,6\n7,8\n9,10"
+    spectrum = from_str(str_with_commas, delimiter=",")
     assert spectrum.num_bins == 5
