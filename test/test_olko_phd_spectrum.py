@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum
 
 def test_y(spectrum_fig3p3_olko_phd):
     assert np.array_equal(spectrum_fig3p3_olko_phd.y, [1,2,3])

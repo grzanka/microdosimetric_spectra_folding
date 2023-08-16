@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, from_str
+from src.spectrum import Spectrum, SpectrumBinningType, from_str
 
 
 @pytest.fixture
@@ -19,9 +19,13 @@ def not_normalised_spectrum() -> Spectrum:
 def test_empty_spectrum():
     empty_spectrum = Spectrum()
     assert empty_spectrum.num_bins == 0
+    assert empty_spectrum.binning_type == SpectrumBinningType.unknown
 
 def test_bin_centers(small_spectrum: Spectrum):
     assert np.array_equal(small_spectrum.bin_centers, np.array([1, 2, 3, 4]))
+    assert small_spectrum.bin_centers.shape == (4,)
+    assert small_spectrum.bin_centers.ndim == 1
+    assert small_spectrum.binning_type == SpectrumBinningType.linear
 
 def test_sum_of_f(small_spectrum: Spectrum):
     assert small_spectrum.bin_values_fy.sum() == pytest.approx(1.0)
@@ -81,3 +85,9 @@ def test_loading_from_str_with_fy():
     str_with_commas = "1,2\n3,4\n5,6\n7,8\n9,10"
     spectrum = from_str(str_with_commas, delimiter=",")
     assert spectrum.num_bins == 5
+
+def test_bin_centers_not_sorted():
+    bin_centers = [1, 2, 3, 4, 3.5]
+    bin_values_fy = [3, 6, 2, 8, 5]
+    with pytest.raises(ValueError):
+        Spectrum.from_lists(bin_centers, bin_values_list=bin_values_fy)

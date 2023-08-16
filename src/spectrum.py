@@ -13,6 +13,12 @@ class SpectrumValueType(Enum):
     yfy = auto()
     ydy = auto()
 
+class SpectrumBinningType(Enum):
+    '''Enum class for spectrum binning types.'''
+    log = auto()
+    linear = auto()
+    unknown = auto()
+
 def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
     '''Calculate the first moment of a spectrum. It may be not normalized.'''
     if bin_values.sum() == 0:
@@ -36,12 +42,9 @@ class Spectrum:
     bin_values_dy_normalized: np.array = field(default_factory=lambda: np.empty(0))
     bin_values_ydy_normalized: np.array = field(default_factory=lambda: np.empty(0))
 
+    binning_type: SpectrumBinningType = SpectrumBinningType.unknown
+
     def __post_init__(self):
-        # if self.bin_centers.size == 0:
-        #     raise ValueError("bin_centers must be initialized")
-        
-        # if self.bin_values_fy.size == 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size == 0:
-        #     raise ValueError("At least one of bin_values_fy, bin_values_yfy, bin_values_ydy must be initialized (not zero)")
         if self.bin_values_fy.size == 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0 \
                 or self.bin_values_fy.size != 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size != 0 \
                 or self.bin_values_fy.size != 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size == 0:
@@ -95,6 +98,18 @@ class Spectrum:
                 or len(self.bin_centers) != len(self.bin_values_yfy) \
                 or len(self.bin_centers) != len(self.bin_values_ydy):
             raise ValueError("All arrays must have the same size")
+        
+        # check if bin_centers are sorted
+        if not np.all(np.diff(self.bin_centers) > 0):
+            raise ValueError("bin_centers must be sorted")
+        
+        # check if bin_centers form an arithmetic progression
+        if self.bin_centers.size >= 2 and np.all(np.diff(self.bin_centers) == self.bin_centers[1] - self.bin_centers[0]):
+            object.__setattr__(self, 'binning_type', SpectrumBinningType.linear)
+        # check if bin_centers form a geometric progression
+        elif self.bin_centers.size >= 2 and np.allclose(np.diff(np.log(self.bin_centers)), np.log(self.bin_centers[1]) - np.log(self.bin_centers[0])):
+            object.__setattr__(self, 'binning_type', SpectrumBinningType.log)
+
             
     @property
     def num_bins(self):
