@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum
+from src.spectrum import Spectrum, test_loading_from_str_with_fy
 
 
 @pytest.fixture
@@ -63,3 +63,17 @@ def test_if_printout_has_multiple_lines(small_spectrum: Spectrum, capsys):
     captured = capsys.readouterr()
     output_lines = captured.out.splitlines()
     assert len(output_lines) > 1
+
+def test_loading_from_str_with_fy():
+    empty_str = ""
+    with pytest.raises(ValueError):
+        from_str(empty_str)
+    corrupts_str = "1 2 3 4 5 6 7 8 9 10"
+    with pytest.raises(ValueError):
+        from_str(corrupts_str)
+    two_rows_str = "1 2 3 4 5 6 7 8 9 10\n1 2 3 4 5 6 7 8 9 10"
+    with pytest.raises(ValueError):
+        from_str(two_rows_str)
+    two_colums_str = "1 2\n3 4\n5 6\n7 8\n9 10"
+    spectrum = from_str(two_colums_str)
+    assert spectrum.num_bins == 5

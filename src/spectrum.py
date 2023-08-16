@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from io import StringIO
 import logging
 import numpy as np
 from numpy.typing import NDArray
@@ -154,3 +155,16 @@ class Spectrum:
             output += f"{field_name}:\n{field_value}\n\n"
         
         return output
+    
+def from_str_with_fy(data_string : str) -> Spectrum:
+    data_array = np.genfromtxt(StringIO(data_string))
+    if data_array.size == 0:
+        raise ValueError("data_string must contain at least one row")
+    if data_array.ndim != 2:
+        logging.debug("data_array.ndim is {}".format(data_array.ndim))
+        raise ValueError("data_string must contain two columns")
+    if data_array.shape[1] != 2:
+        logging.debug("data_array.shape is {}".format(data_array.shape))
+        raise ValueError("data_string must contain two columns")
+    result = Spectrum(bin_centers=data_array[:,0], bin_values_fy=data_array[:,1])
+    return result
