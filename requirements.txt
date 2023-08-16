@@ -10,5 +10,8 @@ matplotlib
 tqdm
 openpyxl
 pytest
+pytest-cov
 mkdocs
 mkdocs-coverage
+mkdocstrings[python]>=0.18
+mkdocs-material

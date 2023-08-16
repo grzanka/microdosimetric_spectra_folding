@@ -8,3 +8,15 @@ plugins:
 - coverage:
     page_name: coverage  # default
     html_report_dir: htmlcov  # default
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [src]
+        options:
+          show_if_no_docstring: true
+          line_numbers: true
+          inheritance_diagram: true
+          line_length: 79
+
+theme:
+  name: material

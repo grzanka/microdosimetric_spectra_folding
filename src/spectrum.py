@@ -12,19 +12,16 @@ def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
 
 @dataclass(frozen=True)
 class Spectrum:
+    '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.'''
 
-    # bin centers
     bin_centers: np.array = field(default_factory=lambda: np.empty(0))
 
-    # default bin values
     bin_values_fy: np.array = field(default_factory=lambda: np.empty(0))
     bin_values_yfy: np.array = field(default_factory=lambda: np.empty(0))
     bin_values_ydy: np.array = field(default_factory=lambda: np.empty(0))
 
-    # derived values
     bin_values_dy: np.array = field(default_factory=lambda: np.empty(0))
 
-    # normalized values
     bin_values_fy_normalized: np.array = field(default_factory=lambda: np.empty(0))
     bin_values_yfy_normalized: np.array = field(default_factory=lambda: np.empty(0))
     bin_values_dy_normalized: np.array = field(default_factory=lambda: np.empty(0))
@@ -73,7 +70,7 @@ class Spectrum:
         if self.bin_values_fy.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
         
-        # # set normalized values
+        # set normalized values
         logging.debug("self.fy is initialized to {}".format(self.fy))
         logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
         object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.fy.sum())
