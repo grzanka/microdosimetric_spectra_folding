@@ -56,3 +56,10 @@ def test_invalid_initialization():
     # Trying to initialize with missing values
     with pytest.raises(ValueError):
         Spectrum.from_lists(bin_centers)
+
+
+def test_if_printout_has_multiple_lines(small_spectrum: Spectrum, capsys):
+    print(small_spectrum)
+    captured = capsys.readouterr()
+    output_lines = captured.out.splitlines()
+    assert len(output_lines) > 1

@@ -148,3 +148,12 @@ class Spectrum:
         bin_values_yfy = np.array(bin_values_yfy_list) if bin_values_yfy_list else np.empty(0)
         bin_values_ydy = np.array(bin_values_ydy_list) if bin_values_ydy_list else np.empty(0)
         return cls(bin_centers = bin_centers, bin_values_fy=bin_values_fy, bin_values_yfy=bin_values_yfy, bin_values_ydy=bin_values_ydy)
+
+    def __str__(self):
+        fields = [(name, value) for name, value in self.__dict__.items() if isinstance(value, np.ndarray)]
+
+        output = ""
+        for field_name, field_value in fields:
+            output += f"{field_name}:\n{field_value}\n\n"
+        
+        return output
