@@ -1,1 +1,10 @@
 site_name: Documentation
+
+nav:
+- Home: index.md
+- Coverage report: coverage.md
+
+plugins:
+- coverage:
+    page_name: coverage  # default
+    html_report_dir: htmlcov  # default
