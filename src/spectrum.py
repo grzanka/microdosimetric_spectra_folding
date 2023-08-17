@@ -44,6 +44,9 @@ class Spectrum:
 
     binning_type: SpectrumBinningType = SpectrumBinningType.unknown
 
+    bin_edges: np.array = field(default_factory=lambda: np.empty(0))
+    bin_widths: np.array = field(default_factory=lambda: np.empty(0))
+
     def __post_init__(self):
         if self.bin_values_fy.size == 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0 \
                 or self.bin_values_fy.size != 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size != 0 \
@@ -89,6 +92,25 @@ class Spectrum:
         elif self.bin_centers.size >= 2 and np.allclose(np.diff(np.log(self.bin_centers)), np.log(self.bin_centers[1]) - np.log(self.bin_centers[0])):
             object.__setattr__(self, 'binning_type', SpectrumBinningType.log)
 
+        if self.binning_type == SpectrumBinningType.linear:
+            bin_centers_diff = np.diff(self.bin_centers).mean()
+            logging.debug("bin_centers_diff is {}".format(bin_centers_diff))
+            lin_bin_edges = np.append(self.bin_centers - bin_centers_diff / 2, self.bin_centers[-1] + bin_centers_diff / 2)
+            object.__setattr__(self, 'bin_edges', lin_bin_edges)
+        if self.binning_type == SpectrumBinningType.log:
+            bin_centers_ratio = np.exp(np.diff(np.log(self.bin_centers)).mean())
+            logging.debug("bin_centers_ratio is {}".format(bin_centers_ratio))
+            log_bin_edges = np.append(self.bin_centers / np.sqrt(bin_centers_ratio), self.bin_centers[-1] * np.sqrt(bin_centers_ratio))
+            object.__setattr__(self, 'bin_edges', log_bin_edges)
+        if self.binning_type == SpectrumBinningType.unknown and self.bin_centers.size > 0:
+            bin_centers_diff = np.diff(self.bin_centers)
+            lowest_bin_edge = self.bin_centers[0] - bin_centers_diff[0] / 2
+            highest_bin_edge = self.bin_centers[-1] + bin_centers_diff[-1] / 2
+            middle_bin_edges = self.bin_centers[:-1] + bin_centers_diff / 2
+            unknown_bin_edges = np.append(np.append(lowest_bin_edge, middle_bin_edges), highest_bin_edge)
+            object.__setattr__(self, 'bin_edges', unknown_bin_edges)
+        object.__setattr__(self, 'bin_widths', np.diff(self.bin_edges))
+
         # set normalized values if bin_centers are initialized
         if self.bin_centers.size > 0 and self.bin_values_fy.size > 0:
             logging.debug("self.fy is initialized to {}".format(self.fy))
@@ -111,24 +133,6 @@ class Spectrum:
         if not np.all(np.diff(self.bin_centers) > 0):
             raise ValueError("bin_centers must be sorted")
         
-
-    @property
-    def bin_edges(self) -> NDArray:
-        result = np.empty(0)
-        if self.binning_type == SpectrumBinningType.linear:
-            bin_centers_diff = np.diff(self.bin_centers).mean()
-            logging.debug("bin_centers_diff is {}".format(bin_centers_diff))
-            result = np.append(self.bin_centers - bin_centers_diff / 2, self.bin_centers[-1] + bin_centers_diff / 2)
-        if self.binning_type == SpectrumBinningType.log:
-            bin_centers_ratio = np.exp(np.diff(np.log(self.bin_centers)).mean())
-            logging.debug("bin_centers_ratio is {}".format(bin_centers_ratio))
-            result = np.append(self.bin_centers / np.sqrt(bin_centers_ratio), self.bin_centers[-1] * np.sqrt(bin_centers_ratio))
-        return result
-    
-    @property
-    def bin_widths(self) -> NDArray:
-        return np.diff(self.bin_edges)
-
     @property
     def num_bins(self) -> int:
         return len(self.bin_centers)
@@ -141,12 +145,12 @@ class Spectrum:
     @property
     def norm(self) -> float:
         '''Normalization factor. Defined as integral of fy over all bins. It is equal to 1 if the spectrum is normalized (for lin or log binning).'''
-        #result = np.nan
-        #if self.binning_type in {SpectrumBinningType.linear, SpectrumBinningType.log}:
-        logging.debug("self.bin_widths is {}".format(self.bin_widths))
-        logging.debug("self.fy is {}".format(self.fy))        
-        result = self.fy @ self.bin_widths
-        logging.debug("result is {}".format(result))
+        result = np.nan
+        if self.binning_type in {SpectrumBinningType.linear, SpectrumBinningType.log}:
+            logging.debug("self.bin_widths is {}".format(self.bin_widths))
+            logging.debug("self.fy is {}".format(self.fy))        
+            result = self.fy @ self.bin_widths
+            logging.debug("result is {}".format(result))
         return result
     
     @property
@@ -192,6 +196,10 @@ class Spectrum:
     @property
     def ydy_norm(self) -> NDArray:
         return self.bin_values_ydy_normalized
+    
+    def bin_numbers(self, y : NDArray) -> NDArray:
+        '''Return the indices of the bins to which each value in input array belongs.'''
+        return np.digitize(x=y, bins=self.bin_edges) - 1
 
     @classmethod
     def from_lists(cls, bin_centers_list : list, bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
