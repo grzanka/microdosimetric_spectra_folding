@@ -82,11 +82,19 @@ class Spectrum:
         if self.bin_values_fy.size > 0 and self.bin_values_fy.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
         
+        # check if bin_centers form an arithmetic progression
+        if self.bin_centers.size >= 2 and np.all(np.diff(self.bin_centers) == self.bin_centers[1] - self.bin_centers[0]):
+            object.__setattr__(self, 'binning_type', SpectrumBinningType.linear)
+        # check if bin_centers form a geometric progression
+        elif self.bin_centers.size >= 2 and np.allclose(np.diff(np.log(self.bin_centers)), np.log(self.bin_centers[1]) - np.log(self.bin_centers[0])):
+            object.__setattr__(self, 'binning_type', SpectrumBinningType.log)
+
         # set normalized values if bin_centers are initialized
         if self.bin_centers.size > 0 and self.bin_values_fy.size > 0:
             logging.debug("self.fy is initialized to {}".format(self.fy))
             logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
-            object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.fy.sum())
+            logging.debug("self.norm is initialized to {}".format(self.norm))
+            object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.norm)
             logging.debug("bin_values_fy_normalized is initialized to {}".format(self.bin_values_fy_normalized))
             logging.debug("(self.y / self.yF) is initialized to {}".format((self.y / self.yF)))
             logging.debug("self.fy_norm is initialized to {}".format((self.fy_norm)))
@@ -103,64 +111,86 @@ class Spectrum:
         if not np.all(np.diff(self.bin_centers) > 0):
             raise ValueError("bin_centers must be sorted")
         
-        # check if bin_centers form an arithmetic progression
-        if self.bin_centers.size >= 2 and np.all(np.diff(self.bin_centers) == self.bin_centers[1] - self.bin_centers[0]):
-            object.__setattr__(self, 'binning_type', SpectrumBinningType.linear)
-        # check if bin_centers form a geometric progression
-        elif self.bin_centers.size >= 2 and np.allclose(np.diff(np.log(self.bin_centers)), np.log(self.bin_centers[1]) - np.log(self.bin_centers[0])):
-            object.__setattr__(self, 'binning_type', SpectrumBinningType.log)
 
-            
     @property
-    def num_bins(self):
+    def bin_edges(self) -> NDArray:
+        result = np.empty(0)
+        if self.binning_type == SpectrumBinningType.linear:
+            bin_centers_diff = np.diff(self.bin_centers).mean()
+            logging.debug("bin_centers_diff is {}".format(bin_centers_diff))
+            result = np.append(self.bin_centers - bin_centers_diff / 2, self.bin_centers[-1] + bin_centers_diff / 2)
+        if self.binning_type == SpectrumBinningType.log:
+            bin_centers_ratio = np.exp(np.diff(np.log(self.bin_centers)).mean())
+            logging.debug("bin_centers_ratio is {}".format(bin_centers_ratio))
+            result = np.append(self.bin_centers / np.sqrt(bin_centers_ratio), self.bin_centers[-1] * np.sqrt(bin_centers_ratio))
+        return result
+    
+    @property
+    def bin_widths(self) -> NDArray:
+        return np.diff(self.bin_edges)
+
+    @property
+    def num_bins(self) -> int:
         return len(self.bin_centers)
     
     @property
-    def f_sum(self):
-        return self.bin_values_fy.sum()
+    def f_sum(self) -> float:
+        '''Sum of bin_values_fy. It is equal to 1 if the spectrum is normalized and has bin widths = 1.'''
+        return self.fy.sum()
     
     @property
-    def yF(self):
+    def norm(self) -> float:
+        '''Normalization factor. Defined as integral of fy over all bins. It is equal to 1 if the spectrum is normalized (for lin or log binning).'''
+        #result = np.nan
+        #if self.binning_type in {SpectrumBinningType.linear, SpectrumBinningType.log}:
+        logging.debug("self.bin_widths is {}".format(self.bin_widths))
+        logging.debug("self.fy is {}".format(self.fy))        
+        result = self.fy @ self.bin_widths
+        logging.debug("result is {}".format(result))
+        return result
+    
+    @property
+    def yF(self) -> float:
         return first_moment(bin_centers=self.y, bin_values=self.fy)
     
     @property
-    def yD(self):
+    def yD(self) -> float:
         return 0
     
     @property
-    def y(self):
+    def y(self) -> NDArray:
         return self.bin_centers
     
     @property
-    def fy(self):
+    def fy(self) -> NDArray:
         return self.bin_values_fy
     
     @property
-    def dy(self):
+    def dy(self) -> NDArray:
         return (self.y / self.yF) * self.fy
 
     @property
-    def yfy(self):
+    def yfy(self) -> NDArray:
         return self.bin_values_yfy
     
     @property
-    def ydy(self):
+    def ydy(self) -> NDArray:
         return self.bin_values_ydy
 
     @property
-    def fy_norm(self):
+    def fy_norm(self) -> NDArray:
         return self.bin_values_fy_normalized
 
     @property
-    def dy_norm(self):
+    def dy_norm(self) -> NDArray:
         return self.bin_values_dy_normalized
 
     @property
-    def yfy_norm(self):
+    def yfy_norm(self) -> NDArray:
         return self.bin_values_yfy_normalized
     
     @property
-    def ydy_norm(self):
+    def ydy_norm(self) -> NDArray:
         return self.bin_values_ydy_normalized
 
     @classmethod
