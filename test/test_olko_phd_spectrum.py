@@ -12,6 +12,7 @@ def test_fy(spectrum_fig3p3_olko_phd):
     assert np.unique(spectrum_fig3p3_olko_phd.fy) == pytest.approx(2)
     assert spectrum_fig3p3_olko_phd.fy.shape == (3,)
     assert spectrum_fig3p3_olko_phd.fy.ndim == 1
+    assert spectrum_fig3p3_olko_phd.norm == 6
     assert np.unique(spectrum_fig3p3_olko_phd.fy_norm) == pytest.approx(1/3)
 
 def test_yfy(spectrum_fig3p3_olko_phd):

@@ -3,39 +3,11 @@ import pytest
 from src.spectrum import Spectrum, SpectrumBinningType, from_str
 
 
-@pytest.fixture
-def small_spectrum() -> Spectrum:
-    bin_centers = [1, 2, 3, 4]
-    bin_values_fy = [0.1, 0.2, 0.3, 0.4]
-    return Spectrum.from_lists(bin_centers_list=bin_centers, bin_values_list=bin_values_fy)
-
-
-@pytest.fixture
-def not_normalised_spectrum() -> Spectrum:
-    bin_centers = [1, 2, 3, 4]
-    bin_values_fy = [1, 2, 3, 4]
-    return Spectrum.from_lists(bin_centers_list=bin_centers, bin_values_list=bin_values_fy)
-
 def test_empty_spectrum():
     empty_spectrum = Spectrum()
     assert empty_spectrum.num_bins == 0
     assert empty_spectrum.binning_type == SpectrumBinningType.unknown
 
-def test_bin_centers(small_spectrum: Spectrum):
-    assert np.array_equal(small_spectrum.bin_centers, np.array([1, 2, 3, 4]))
-    assert small_spectrum.bin_centers.shape == (4,)
-    assert small_spectrum.bin_centers.ndim == 1
-    assert small_spectrum.binning_type == SpectrumBinningType.linear
-
-def test_sum_of_f(small_spectrum: Spectrum):
-    assert small_spectrum.bin_values_fy.sum() == pytest.approx(1.0)
-    assert small_spectrum.fy.sum() == pytest.approx(1.0)
-    assert small_spectrum.f_sum == pytest.approx(1.0)
-
-def test_normalized_f(not_normalised_spectrum: Spectrum):
-    assert not_normalised_spectrum.bin_values_fy.sum() == pytest.approx(10.0)
-    assert not_normalised_spectrum.f_sum == pytest.approx(10.0)
-    assert not_normalised_spectrum.bin_values_fy_normalized.sum() == pytest.approx(1.0)
 
 def test_creation_from_lists(spectrum_fig3p3_olko_phd):
     bin_centers = spectrum_fig3p3_olko_phd.bin_centers.tolist()
