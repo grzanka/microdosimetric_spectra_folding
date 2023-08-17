@@ -15,4 +15,4 @@ def test_normalized_f(not_normalised_spectrum: Spectrum):
     assert not_normalised_spectrum.norm == pytest.approx(10.0), "norm is not 10.0"
 
 def test_norm_unknown_binning(spectrum_unknown_binning : Spectrum):    
-    assert np.isnan(spectrum_unknown_binning.norm)
+    assert spectrum_unknown_binning.norm == pytest.approx(1.2), "norm is not 1.0"

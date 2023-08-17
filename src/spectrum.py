@@ -145,12 +145,10 @@ class Spectrum:
     @property
     def norm(self) -> float:
         '''Normalization factor. Defined as integral of fy over all bins. It is equal to 1 if the spectrum is normalized (for lin or log binning).'''
-        result = np.nan
-        if self.binning_type in {SpectrumBinningType.linear, SpectrumBinningType.log}:
-            logging.debug("self.bin_widths is {}".format(self.bin_widths))
-            logging.debug("self.fy is {}".format(self.fy))        
-            result = self.fy @ self.bin_widths
-            logging.debug("result is {}".format(result))
+        logging.debug("self.bin_widths is {}".format(self.bin_widths))
+        logging.debug("self.fy is {}".format(self.fy))        
+        result = self.fy @ self.bin_widths
+        logging.debug("result is {}".format(result))
         return result
     
     @property
