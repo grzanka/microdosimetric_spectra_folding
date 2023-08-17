@@ -204,7 +204,25 @@ class Spectrum:
     def bin_number(self, y : float) -> float:
         '''Return the index of the bins to which the value belongs.'''
         return self.bin_numbers(np.array([y]))[0]
-
+    
+    def bin_values(self, y : NDArray, spectrum_value_type: SpectrumValueType = SpectrumValueType.yfy) -> float:
+        '''Return the value of the bin to which the value belongs.'''   
+        ind = self.bin_numbers(y)
+        ind[ind < 0] = -1
+        ind[ind >= self.bin_centers.size] = -1
+        bin_values_extended = np.zeros(shape=(self.bin_centers.size+2,))
+        if spectrum_value_type == SpectrumValueType.fy:
+            bin_values_extended[1:-1] = self.fy
+        elif spectrum_value_type == SpectrumValueType.yfy:
+            bin_values_extended[1:-1] = self.yfy
+        elif spectrum_value_type == SpectrumValueType.ydy:
+            bin_values_extended[1:-1] = self.ydy
+        return bin_values_extended.take(indices=ind+1, mode='clip')
+    
+    def bin_value(self, y : float, spectrum_value_type: SpectrumValueType = SpectrumValueType.yfy) -> float:
+        '''Return the value of the bin to which the value belongs.'''
+        return self.bin_values(np.array([y]), spectrum_value_type)[0]
+    
     @classmethod
     def from_lists(cls, bin_centers_list : list, bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
         bin_centers = np.array(bin_centers_list)
