@@ -200,6 +200,10 @@ class Spectrum:
     def bin_numbers(self, y : NDArray) -> NDArray:
         '''Return the indices of the bins to which each value in input array belongs.'''
         return np.digitize(x=y, bins=self.bin_edges) - 1
+    
+    def bin_number(self, y : float) -> float:
+        '''Return the index of the bins to which the value belongs.'''
+        return self.bin_numbers(np.array([y]))[0]
 
     @classmethod
     def from_lists(cls, bin_centers_list : list, bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):

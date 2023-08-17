@@ -73,6 +73,7 @@ def test_bin_numbers(small_spectrum: Spectrum):
     with pytest.raises(TypeError):
         small_spectrum.bin_centers(y=2)
     assert np.array_equal(small_spectrum.bin_numbers(y=[2]), [1])
+    assert small_spectrum.bin_number(y=3) == 2
 
 def test_bin_numbers_log_spectrum(spectrum_log_binning: Spectrum):
     # bin centers 0.1, 1, 10, 100
@@ -104,6 +105,7 @@ def test_bin_numbers_log_spectrum(spectrum_log_binning: Spectrum):
     with pytest.raises(TypeError):
         spectrum_log_binning.bin_centers(y=2)
     assert np.array_equal(spectrum_log_binning.bin_numbers(y=[2]), [1])
+    assert spectrum_log_binning.bin_number(y=3) == 1
 
 
 def test_bin_numbers_unknown_binning(spectrum_unknown_binning: Spectrum):
@@ -132,8 +134,9 @@ def test_bin_numbers_unknown_binning(spectrum_unknown_binning: Spectrum):
         3, 3,
         4, 4
         ])
-    assert np.array_equal(spectrum_unknown_binning.bin_numbers(y=[4]), [2])
     logging.debug(f"bin numbers {spectrum_unknown_binning.bin_numbers(y=y_values)}")
     assert np.array_equal(spectrum_unknown_binning.bin_numbers(y=y_values), expected_bin_numbers)
     with pytest.raises(TypeError):
         spectrum_unknown_binning.bin_centers(y=4)
+    assert np.array_equal(spectrum_unknown_binning.bin_numbers(y=[4]), [2])
+    assert spectrum_unknown_binning.bin_number(y=5.5) == 4
