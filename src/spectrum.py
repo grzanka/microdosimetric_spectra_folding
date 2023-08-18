@@ -13,23 +13,23 @@ from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid
 class Spectrum:
     '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.'''
 
-    bin_centers: NDArray = np.empty(0)
+    bin_centers: NDArray = field(default_factory=lambda: np.empty(0))
 
-    bin_values_fy: NDArray = np.empty(0)
-    bin_values_yfy: NDArray = np.empty(0)
-    bin_values_ydy: NDArray = np.empty(0)
+    bin_values_fy: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_values_yfy: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_values_ydy: NDArray = field(default_factory=lambda: np.empty(0))
 
-    bin_values_dy: NDArray = np.empty(0)
+    bin_values_dy: NDArray = field(default_factory=lambda: np.empty(0))
 
-    bin_values_fy_normalized: NDArray = np.empty(0)
-    bin_values_yfy_normalized: NDArray = np.empty(0)
-    bin_values_dy_normalized: NDArray = np.empty(0)
-    bin_values_ydy_normalized: NDArray = np.empty(0)
+    bin_values_fy_normalized: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_values_yfy_normalized: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_values_dy_normalized: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_values_ydy_normalized: NDArray = field(default_factory=lambda: np.empty(0))
 
     binning_type: SpectrumBinningType = SpectrumBinningType.unknown
 
-    bin_edges: NDArray = np.empty(0)
-    bin_widths: NDArray = np.empty(0)
+    bin_edges: NDArray = field(default_factory=lambda: np.empty(0))
+    bin_widths: NDArray = field(default_factory=lambda: np.empty(0))
     
     bin_nums: int = 0
     norm: float = np.nan
