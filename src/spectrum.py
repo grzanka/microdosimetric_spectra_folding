@@ -6,54 +6,35 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-
-class SpectrumValueType(Enum):
-    '''Enum class for spectrum value types.'''
-    fy = auto()
-    yfy = auto()
-    ydy = auto()
-
-class SpectrumBinningType(Enum):
-    '''Enum class for spectrum binning types.'''
-    log = auto()
-    linear = auto()
-    unknown = auto()
-
-def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
-    '''Calculate the first moment of a spectrum. It may be not normalized.'''
-    if bin_values.sum() == 0:
-        raise ZeroDivisionError("Sum of bin_values must be positive")
-    return np.sum(bin_centers * bin_values) / np.sum(bin_values)
+from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType
+from src.checks import check_if_array_holds_spectrum, check_if_only_one_initialized
 
 @dataclass(frozen=True)
 class Spectrum:
     '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.'''
 
-    bin_centers: np.array = field(default_factory=lambda: np.empty(0))
+    bin_centers: NDArray = np.empty(0)
 
-    bin_values_fy: np.array = field(default_factory=lambda: np.empty(0))
-    bin_values_yfy: np.array = field(default_factory=lambda: np.empty(0))
-    bin_values_ydy: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_fy: NDArray = np.empty(0)
+    bin_values_yfy: NDArray = np.empty(0)
+    bin_values_ydy: NDArray = np.empty(0)
 
-    bin_values_dy: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_dy: NDArray = np.empty(0)
 
-    bin_values_fy_normalized: np.array = field(default_factory=lambda: np.empty(0))
-    bin_values_yfy_normalized: np.array = field(default_factory=lambda: np.empty(0))
-    bin_values_dy_normalized: np.array = field(default_factory=lambda: np.empty(0))
-    bin_values_ydy_normalized: np.array = field(default_factory=lambda: np.empty(0))
+    bin_values_fy_normalized: NDArray = np.empty(0)
+    bin_values_yfy_normalized: NDArray = np.empty(0)
+    bin_values_dy_normalized: NDArray = np.empty(0)
+    bin_values_ydy_normalized: NDArray = np.empty(0)
 
     binning_type: SpectrumBinningType = SpectrumBinningType.unknown
 
-    bin_edges: np.array = field(default_factory=lambda: np.empty(0))
-    bin_widths: np.array = field(default_factory=lambda: np.empty(0))
+    bin_edges: NDArray = np.empty(0)
+    bin_widths: NDArray = np.empty(0)
+    bin_nums: int = 0
 
     def __post_init__(self):
-        if self.bin_values_fy.size == 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0 \
-                or self.bin_values_fy.size != 0 and self.bin_values_yfy.size == 0 and self.bin_values_ydy.size != 0 \
-                or self.bin_values_fy.size != 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size == 0:
-            raise ValueError("Only one of bin_values_fy, bin_values_yfy, bin_values_ydy must be initialized (not two)")
-        if self.bin_values_fy.size != 0 and self.bin_values_yfy.size != 0 and self.bin_values_ydy.size != 0:
-            raise ValueError("Only one of bin_values_fy, bin_values_yfy, bin_values_ydy must be initialized (not three)")
+        check_if_only_one_initialized(self.bin_values_fy, self.bin_values_yfy, self.bin_values_ydy)
+
 
         fy_initialized = self.bin_values_fy.size != 0
         yfy_initialized = self.bin_values_yfy.size != 0
@@ -84,31 +65,23 @@ class Spectrum:
         # if bin values are initialized then sum of bin_values_fy must be positive
         if self.bin_values_fy.size > 0 and self.bin_values_fy.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
-        
-        # check if bin_centers form an arithmetic progression
-        if self.bin_centers.size >= 2 and np.all(np.diff(self.bin_centers) == self.bin_centers[1] - self.bin_centers[0]):
-            object.__setattr__(self, 'binning_type', SpectrumBinningType.linear)
-        # check if bin_centers form a geometric progression
-        elif self.bin_centers.size >= 2 and np.allclose(np.diff(np.log(self.bin_centers)), np.log(self.bin_centers[1]) - np.log(self.bin_centers[0])):
-            object.__setattr__(self, 'binning_type', SpectrumBinningType.log)
 
-        if self.binning_type == SpectrumBinningType.linear:
-            bin_centers_diff = np.diff(self.bin_centers).mean()
-            logging.debug("bin_centers_diff is {}".format(bin_centers_diff))
-            lin_bin_edges = np.append(self.bin_centers - bin_centers_diff / 2, self.bin_centers[-1] + bin_centers_diff / 2)
-            object.__setattr__(self, 'bin_edges', lin_bin_edges)
-        if self.binning_type == SpectrumBinningType.log:
-            bin_centers_ratio = np.exp(np.diff(np.log(self.bin_centers)).mean())
-            logging.debug("bin_centers_ratio is {}".format(bin_centers_ratio))
-            log_bin_edges = np.append(self.bin_centers / np.sqrt(bin_centers_ratio), self.bin_centers[-1] * np.sqrt(bin_centers_ratio))
-            object.__setattr__(self, 'bin_edges', log_bin_edges)
-        if self.binning_type == SpectrumBinningType.unknown and self.bin_centers.size > 0:
-            bin_centers_diff = np.diff(self.bin_centers)
-            lowest_bin_edge = self.bin_centers[0] - bin_centers_diff[0] / 2
-            highest_bin_edge = self.bin_centers[-1] + bin_centers_diff[-1] / 2
-            middle_bin_edges = self.bin_centers[:-1] + bin_centers_diff / 2
-            unknown_bin_edges = np.append(np.append(lowest_bin_edge, middle_bin_edges), highest_bin_edge)
-            object.__setattr__(self, 'bin_edges', unknown_bin_edges)
+        if len(self.bin_centers) != len(self.bin_values_fy) \
+                or len(self.bin_centers) != len(self.bin_values_yfy) \
+                or len(self.bin_centers) != len(self.bin_values_ydy):
+            raise ValueError("All arrays must have the same size")
+
+        # check if bin_centers are sorted
+        if not np.all(np.diff(self.bin_centers) > 0):
+            raise ValueError("bin_centers must be sorted")
+
+        object.__setattr__(self, 'num_bins', self.bin_centers.size)
+
+        # Set binning type
+        object.__setattr__(self, 'binning_type', binning_type(self.bin_centers))
+
+        # Set bin edges and bin widths
+        object.__setattr__(self, 'bin_edges', bin_edges(self.bin_centers, self.binning_type))
         object.__setattr__(self, 'bin_widths', np.diff(self.bin_edges))
 
         # set normalized values if bin_centers are initialized
@@ -124,19 +97,6 @@ class Spectrum:
             object.__setattr__(self, 'bin_values_yfy_normalized', self.y * self.fy_norm)
             object.__setattr__(self, 'bin_values_ydy_normalized', self.y * self.bin_values_dy_normalized)
 
-        if len(self.bin_centers) != len(self.bin_values_fy) \
-                or len(self.bin_centers) != len(self.bin_values_yfy) \
-                or len(self.bin_centers) != len(self.bin_values_ydy):
-            raise ValueError("All arrays must have the same size")
-        
-        # check if bin_centers are sorted
-        if not np.all(np.diff(self.bin_centers) > 0):
-            raise ValueError("bin_centers must be sorted")
-        
-    @property
-    def num_bins(self) -> int:
-        return len(self.bin_centers)
-    
     @property
     def f_sum(self) -> float:
         '''Sum of bin_values_fy. It is equal to 1 if the spectrum is normalized and has bin widths = 1.'''
@@ -169,7 +129,7 @@ class Spectrum:
     
     @property
     def dy(self) -> NDArray:
-        return (self.y / self.yF) * self.fy
+        return self.bin_values_dy
 
     @property
     def yfy(self) -> NDArray:
@@ -222,7 +182,7 @@ class Spectrum:
         return self.bin_values(np.array([y]), spectrum_value_type)[0]
     
     @classmethod
-    def from_lists(cls, bin_centers_list : list, bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
+    def from_lists(cls, bin_centers_list : list=[], bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
         bin_centers = np.array(bin_centers_list)
         bin_values_fy = np.array(bin_values_list) if bin_values_list else np.empty(0)
         bin_values_yfy = np.array(bin_values_yfy_list) if bin_values_yfy_list else np.empty(0)
@@ -238,16 +198,6 @@ class Spectrum:
         
         return output
     
-def check_if_array_holds_spectrum(data_array: NDArray):
-    if data_array.size == 0:
-        raise ValueError("data_string must contain at least one row")
-    if data_array.ndim != 2:
-        logging.debug("data_array.ndim is {}".format(data_array.ndim))
-        raise ValueError("data_string must contain two columns")
-    if data_array.shape[1] != 2:
-        logging.debug("data_array.shape is {}".format(data_array.shape))
-        raise ValueError("data_string must contain two columns")
-
 def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValueType.yfy) -> Spectrum:
     '''Load spectrum from array. The array must contain two columns: bin_centers and bin_values_fy.'''
     check_if_array_holds_spectrum(data_array)

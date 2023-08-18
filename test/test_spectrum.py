@@ -8,6 +8,25 @@ def test_empty_spectrum():
     assert empty_spectrum.num_bins == 0
     assert empty_spectrum.binning_type == SpectrumBinningType.unknown
 
+def test_negative_spectrum():
+    with pytest.raises(ValueError):
+        Spectrum.from_lists([-1, 0, 1], [-1, -2, -3])
+
+def test_spectrum_with_one_bin():
+    spectrum = Spectrum.from_lists([1], [1])
+    assert spectrum.num_bins == 1
+    assert spectrum.binning_type == SpectrumBinningType.unknown
+    assert spectrum.bin_centers.size == 1
+    assert spectrum.bin_centers[0] == pytest.approx(1)
+    assert spectrum.bin_widths.size == 1
+    assert np.isnan(spectrum.bin_widths[0])
+    assert spectrum.bin_edges.size == 2
+    assert np.isnan(spectrum.bin_edges[0])
+    assert np.isnan(spectrum.bin_edges[1])
+
+def test_spectrum_with_zero_bin_values():
+    with pytest.raises(ZeroDivisionError):
+        Spectrum.from_lists([1, 2, 3], [0, 0, 0])
 
 def test_creation_from_lists(spectrum_fig3p3_olko_phd):
     bin_centers = spectrum_fig3p3_olko_phd.bin_centers.tolist()
