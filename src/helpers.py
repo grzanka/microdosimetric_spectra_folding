@@ -52,3 +52,27 @@ def bin_edges(bin_centers : NDArray, binning_type: SpectrumBinningType) -> NDArr
     if bin_centers.size == 1:
         result = np.array([np.nan, np.nan])
     return result
+
+
+def others_from_y_and_fy(y: NDArray, fy: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate yfy and ydy from y and fy.'''
+
+    yfy = y * fy # yfy = y * f(y)
+    yF = first_moment(bin_centers=y, bin_values=fy)
+
+    # d(y) = (y / yF) * f(y)
+    dy = (y / yF) * fy
+    ydy = y * dy
+
+    return yfy, dy, ydy
+
+def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate fy and ydy from y and yfy.'''
+
+    fy = yfy / y # yfy = y * f(y)
+    yF = first_moment(bin_centers=y, bin_values=fy)
+
+    # d(y) = (y / yF) * f(y)
+    dy = (y / yF) * fy
+    ydy = y * dy
+    return fy, dy, ydy

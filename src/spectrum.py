@@ -6,8 +6,8 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType
-from src.checks import check_if_array_holds_spectrum, check_if_only_one_initialized
+from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType, others_from_y_and_fy, others_from_y_and_yfy
+from src.checks import check_if_array_holds_spectrum, check_if_only_one_initialized, check_if_same_length_as_bin_centers
 
 @dataclass(frozen=True)
 class Spectrum:
@@ -35,41 +35,27 @@ class Spectrum:
     def __post_init__(self):
         check_if_only_one_initialized(self.bin_values_fy, self.bin_values_yfy, self.bin_values_ydy)
 
-
-        fy_initialized = self.bin_values_fy.size != 0
-        yfy_initialized = self.bin_values_yfy.size != 0
-        ydy_initialized = self.bin_values_ydy.size != 0
-        if fy_initialized:
-            logging.debug("bin_values_fy is initialized to {}".format(self.bin_values_fy))
-            # yfy = y * f(y)
-            object.__setattr__(self, 'bin_values_yfy', self.y * self.fy)
-            logging.debug("bin_values_yfy is initialized to {}".format(self.bin_values_yfy))
-            
-            # d(y) = (y / yF) * f(y)
-            object.__setattr__(self, 'bin_values_dy', (self.y / self.yF) * self.fy)
-            logging.debug("bin_values_dy is initialized to {}".format(self.bin_values_dy))
-            object.__setattr__(self, 'bin_values_ydy', self.y * self.dy)
-            logging.debug("bin_values_ydy is initialized to {}".format(self.bin_values_ydy))
-
-        if yfy_initialized:
-            logging.debug("bin_values_yfy is initialized to {}".format(self.bin_values_yfy))
-            # yfy = y * f(y)   =>    fy = yfy / y
-            object.__setattr__(self, 'bin_values_fy', self.yfy / self.y)
-
-            # d(y) = (y / yF) * f(y)
-            object.__setattr__(self, 'bin_values_dy', (self.y / self.yF) * self.fy)
-            object.__setattr__(self, 'bin_values_ydy', self.y * self.dy)
-        if ydy_initialized:
-            raise NotImplementedError("deriving spectrum from ydy is not implemented yet")
+        fy = dy = yfy = ydy = np.empty(0)
+        if self.bin_values_fy.size != 0:
+            fy = self.bin_values_fy
+            yfy, dy, ydy = others_from_y_and_fy(y=self.bin_centers, fy=self.bin_values_fy)
+        if self.bin_values_yfy.size != 0:
+            yfy = self.bin_values_yfy
+            fy, dy, ydy = others_from_y_and_yfy(y=self.bin_centers, yfy=yfy)
+        if self.bin_values_ydy.size != 0 or self.bin_values_dy.size != 0:
+            raise NotImplementedError("deriving spectrum from dy or ydy is not implemented yet")
+        if self.bin_values_fy.size == 0:
+            object.__setattr__(self, 'bin_values_fy', fy)
+        if self.bin_values_yfy.size == 0:
+            object.__setattr__(self, 'bin_values_yfy', yfy)
+        object.__setattr__(self, 'bin_values_dy', dy)
+        object.__setattr__(self, 'bin_values_ydy', ydy)
 
         # if bin values are initialized then sum of bin_values_fy must be positive
         if self.bin_values_fy.size > 0 and self.bin_values_fy.sum() <= 0:
             raise ValueError("Sum of bin_values_f must be positive")
 
-        if len(self.bin_centers) != len(self.bin_values_fy) \
-                or len(self.bin_centers) != len(self.bin_values_yfy) \
-                or len(self.bin_centers) != len(self.bin_values_ydy):
-            raise ValueError("All arrays must have the same size")
+        check_if_same_length_as_bin_centers(bin_centers=self.bin_centers, fy=self.bin_values_fy, yfy=self.bin_values_yfy, ydy=self.bin_values_ydy)
 
         # check if bin_centers are sorted
         if not np.all(np.diff(self.bin_centers) > 0):
@@ -182,12 +168,12 @@ class Spectrum:
         return self.bin_values(np.array([y]), spectrum_value_type)[0]
     
     @classmethod
-    def from_lists(cls, bin_centers_list : list=[], bin_values_list : list =[], bin_values_yfy_list: list=[], bin_values_ydy_list: list=[]):
-        bin_centers = np.array(bin_centers_list)
-        bin_values_fy = np.array(bin_values_list) if bin_values_list else np.empty(0)
-        bin_values_yfy = np.array(bin_values_yfy_list) if bin_values_yfy_list else np.empty(0)
-        bin_values_ydy = np.array(bin_values_ydy_list) if bin_values_ydy_list else np.empty(0)
-        return cls(bin_centers = bin_centers, bin_values_fy=bin_values_fy, bin_values_yfy=bin_values_yfy, bin_values_ydy=bin_values_ydy)
+    def from_lists(cls, y_list : list=[], fy_list : list =[], yfy_list: list=[], ydy_list: list=[]):
+        y_array = np.array(y_list)
+        fy_array = np.array(fy_list) if fy_list else np.empty(0)
+        yfy_array = np.array(yfy_list) if yfy_list else np.empty(0)
+        ydy_array = np.array(ydy_list) if ydy_list else np.empty(0)
+        return cls(bin_centers = y_array, bin_values_fy=fy_array, bin_values_yfy=yfy_array, bin_values_ydy=ydy_array)
 
     def __str__(self):
         fields = [(name, value) for name, value in self.__dict__.items() if isinstance(value, np.ndarray)]
