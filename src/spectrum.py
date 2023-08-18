@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType, others_from_y_and_fy, others_from_y_and_yfy
-from src.checks import check_if_array_holds_spectrum, check_if_only_one_initialized, check_if_same_length_as_bin_centers
+from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid, check_if_only_one_initialized, check_if_same_length_as_bin_centers
 
 @dataclass(frozen=True)
 class Spectrum:
@@ -30,9 +30,16 @@ class Spectrum:
 
     bin_edges: NDArray = np.empty(0)
     bin_widths: NDArray = np.empty(0)
+    
     bin_nums: int = 0
+    norm: float = np.nan
+    yF: float = np.nan
+    yD: float = np.nan
 
     def __post_init__(self):
+        check_if_bin_centers_valid(self.bin_centers)
+        object.__setattr__(self, 'num_bins', self.bin_centers.size)
+
         check_if_only_one_initialized(self.bin_values_fy, self.bin_values_yfy, self.bin_values_ydy)
 
         fy = dy = yfy = ydy = np.empty(0)
@@ -51,17 +58,13 @@ class Spectrum:
         object.__setattr__(self, 'bin_values_dy', dy)
         object.__setattr__(self, 'bin_values_ydy', ydy)
 
-        # if bin values are initialized then sum of bin_values_fy must be positive
-        if self.bin_values_fy.size > 0 and self.bin_values_fy.sum() <= 0:
-            raise ValueError("Sum of bin_values_f must be positive")
-
         check_if_same_length_as_bin_centers(bin_centers=self.bin_centers, fy=self.bin_values_fy, yfy=self.bin_values_yfy, ydy=self.bin_values_ydy)
 
-        # check if bin_centers are sorted
-        if not np.all(np.diff(self.bin_centers) > 0):
-            raise ValueError("bin_centers must be sorted")
-
-        object.__setattr__(self, 'num_bins', self.bin_centers.size)
+        # set means
+        if self.bin_values_fy.size > 0:
+            object.__setattr__(self, 'yF', first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_fy))
+        if self.bin_values_dy.size > 0:
+            object.__setattr__(self, 'yD', first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_dy))
 
         # Set binning type
         object.__setattr__(self, 'binning_type', binning_type(self.bin_centers))
@@ -71,40 +74,13 @@ class Spectrum:
         object.__setattr__(self, 'bin_widths', np.diff(self.bin_edges))
 
         # set normalized values if bin_centers are initialized
+        object.__setattr__(self, 'norm', self.fy @ self.bin_widths)
         if self.bin_centers.size > 0 and self.bin_values_fy.size > 0:
-            logging.debug("self.fy is initialized to {}".format(self.fy))
-            logging.debug("self.fy.sum() is initialized to {}".format(self.fy.sum()))
-            logging.debug("self.norm is initialized to {}".format(self.norm))
             object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.norm)
-            logging.debug("bin_values_fy_normalized is initialized to {}".format(self.bin_values_fy_normalized))
-            logging.debug("(self.y / self.yF) is initialized to {}".format((self.y / self.yF)))
-            logging.debug("self.fy_norm is initialized to {}".format((self.fy_norm)))
             object.__setattr__(self, 'bin_values_dy_normalized', (self.y / self.yF) * self.bin_values_fy_normalized)
             object.__setattr__(self, 'bin_values_yfy_normalized', self.y * self.fy_norm)
             object.__setattr__(self, 'bin_values_ydy_normalized', self.y * self.bin_values_dy_normalized)
 
-    @property
-    def f_sum(self) -> float:
-        '''Sum of bin_values_fy. It is equal to 1 if the spectrum is normalized and has bin widths = 1.'''
-        return self.fy.sum()
-    
-    @property
-    def norm(self) -> float:
-        '''Normalization factor. Defined as integral of fy over all bins. It is equal to 1 if the spectrum is normalized (for lin or log binning).'''
-        logging.debug("self.bin_widths is {}".format(self.bin_widths))
-        logging.debug("self.fy is {}".format(self.fy))        
-        result = self.fy @ self.bin_widths
-        logging.debug("result is {}".format(result))
-        return result
-    
-    @property
-    def yF(self) -> float:
-        return first_moment(bin_centers=self.y, bin_values=self.fy)
-    
-    @property
-    def yD(self) -> float:
-        return 0
-    
     @property
     def y(self) -> NDArray:
         return self.bin_centers

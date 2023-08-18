@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from numpy.typing import NDArray
 
 def check_if_only_one_initialized(fy: NDArray, yfy: NDArray, ydy: NDArray):
@@ -28,3 +29,11 @@ def check_if_same_length_as_bin_centers(bin_centers: NDArray, fy: NDArray, yfy: 
         raise ValueError("yfy must have the same size as bin_centers")
     if ydy.size != bin_centers.size:
         raise ValueError("ydy must have the same size as bin_centers")
+    
+def check_if_bin_centers_valid(bin_centers: NDArray):
+    # check if bin_centers are sorted
+    if not np.all(np.diff(bin_centers) > 0):
+        raise ValueError("bin_centers must be sorted")
+    # check if bin_centers are positive
+    if np.any(bin_centers <= 0):
+        raise ValueError("bin_centers must be positive")
