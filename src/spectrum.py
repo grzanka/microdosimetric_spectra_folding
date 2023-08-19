@@ -75,7 +75,7 @@ class Spectrum:
 
         # set normalized values if bin_centers are initialized
         object.__setattr__(self, 'norm', self.fy @ self.bin_widths)
-        fy_norm = self.fy / self.norm
+        fy_norm = self.fy / self.norm if self.norm != 0 else np.zeros_like(self.fy)
         object.__setattr__(self, 'bin_values_fy_normalized', fy_norm)
         yfy_norm, dy_norm, ydy_norm = others_from_y_and_fy(y=self.bin_centers, fy=self.bin_values_fy_normalized)
         object.__setattr__(self, 'bin_values_yfy_normalized', yfy_norm)
@@ -175,9 +175,12 @@ def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValu
 
 def from_str(data_string : str, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:
     '''Load spectrum from string. The string must contain two columns: bin_centers and bin_values_fy.'''
-    data_array = np.genfromtxt(StringIO(data_string), **kwargs)
-    check_if_array_holds_spectrum(data_array)
-    result = from_array(data_array, value_type)
+    if data_string:
+        data_array = np.genfromtxt(StringIO(data_string), **kwargs)
+        check_if_array_holds_spectrum(data_array)
+        result = from_array(data_array, value_type)
+    else:
+        result = Spectrum()
     return result
 
 def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:

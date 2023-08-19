@@ -25,7 +25,6 @@ def test_spectrum_with_one_bin():
     assert np.isnan(spectrum.bin_edges[1])
 
 def test_spectrum_with_zero_bin_values():
-    # with pytest.raises(ZeroDivisionError):
     spectrum = Spectrum.from_lists([1, 2, 3], [0, 0, 0])
     assert spectrum.num_bins == 3
     assert spectrum.binning_type == SpectrumBinningType.linear
@@ -67,8 +66,8 @@ def test_if_printout_has_multiple_lines(small_spectrum: Spectrum, capsys):
 
 def test_loading_from_str_with_fy():
     empty_str = ""
-    with pytest.raises(ValueError):
-        from_str(empty_str)
+    spectrum = from_str(empty_str)
+    assert spectrum.num_bins == 0
     corrupts_str = "1 2 3 4 5 6 7 8 9 10"
     with pytest.raises(ValueError):
         from_str(corrupts_str)
