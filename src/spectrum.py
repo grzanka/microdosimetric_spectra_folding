@@ -75,11 +75,12 @@ class Spectrum:
 
         # set normalized values if bin_centers are initialized
         object.__setattr__(self, 'norm', self.fy @ self.bin_widths)
-        if self.bin_centers.size > 0 and self.bin_values_fy.size > 0:
-            object.__setattr__(self, 'bin_values_fy_normalized', self.fy / self.norm)
-            object.__setattr__(self, 'bin_values_dy_normalized', (self.y / self.yF) * self.bin_values_fy_normalized)
-            object.__setattr__(self, 'bin_values_yfy_normalized', self.y * self.fy_norm)
-            object.__setattr__(self, 'bin_values_ydy_normalized', self.y * self.bin_values_dy_normalized)
+        fy_norm = self.fy / self.norm
+        object.__setattr__(self, 'bin_values_fy_normalized', fy_norm)
+        yfy_norm, dy_norm, ydy_norm = others_from_y_and_fy(y=self.bin_centers, fy=self.bin_values_fy_normalized)
+        object.__setattr__(self, 'bin_values_yfy_normalized', yfy_norm)
+        object.__setattr__(self, 'bin_values_dy_normalized', dy_norm)
+        object.__setattr__(self, 'bin_values_ydy_normalized', ydy_norm)
 
     @property
     def y(self) -> NDArray:

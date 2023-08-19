@@ -25,8 +25,13 @@ def test_spectrum_with_one_bin():
     assert np.isnan(spectrum.bin_edges[1])
 
 def test_spectrum_with_zero_bin_values():
-    with pytest.raises(ZeroDivisionError):
-        Spectrum.from_lists([1, 2, 3], [0, 0, 0])
+    # with pytest.raises(ZeroDivisionError):
+    spectrum = Spectrum.from_lists([1, 2, 3], [0, 0, 0])
+    assert spectrum.num_bins == 3
+    assert spectrum.binning_type == SpectrumBinningType.linear
+    assert np.isnan(spectrum.yF), "yF must be NaN if bin_values are all zero"
+
+
 
 def test_creation_from_lists(spectrum_fig3p3_olko_phd):
     bin_centers = spectrum_fig3p3_olko_phd.bin_centers.tolist()
