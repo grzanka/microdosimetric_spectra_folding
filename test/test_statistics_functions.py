@@ -17,8 +17,7 @@ def test_first_moment(example_data):
 def test_first_moment_with_zeros():
     bin_centers = np.array([1, 2, 3, 4, 5])
     bin_values = np.array([0, 0, 0, 0, 0])
-    with pytest.raises(ZeroDivisionError):
-        first_moment(bin_centers, bin_values)
+    assert np.isnan(first_moment(bin_centers, bin_values)), "First moment of zero values must be NaN"
 
 def test_moment_olko_phd_thesis_fig3p3(spectrum_fig3p3_olko_phd):
     result = first_moment(spectrum_fig3p3_olko_phd.bin_centers, spectrum_fig3p3_olko_phd.bin_values_fy)

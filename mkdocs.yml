@@ -1,7 +1,13 @@
 site_name: Documentation
+site_url: https://grzanka.github.io/microdosimetric_spectra_folding/
+repo_url: https://github.com/grzanka/microdosimetric_spectra_folding
+repo_name: grzanka/microdosimetric_spectra_folding
+copyright: Copyright &copy; 2023 Leszek Grzanka
 
 nav:
-- Home: index.md
+
+- Home: 
+  - Overview: index.md
 - Coverage report: coverage.md
 
 plugins:

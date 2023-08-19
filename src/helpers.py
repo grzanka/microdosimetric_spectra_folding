@@ -18,7 +18,8 @@ class SpectrumBinningType(Enum):
 def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
     '''Calculate the first moment of a spectrum. It may be not normalized.'''
     if bin_values.sum() == 0:
-        raise ZeroDivisionError("Sum of bin_values must be positive")
+        return np.nan
+        # raise ZeroDivisionError("Sum of bin_values must be positive")
     return np.sum(bin_centers * bin_values) / np.sum(bin_values)
 
 def binning_type(bin_centers : NDArray) -> SpectrumBinningType:
@@ -76,3 +77,9 @@ def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, N
     dy = (y / yF) * fy
     ydy = y * dy
     return fy, dy, ydy
+
+def normalized_fy(y: NDArray, fy: NDArray, norm: float) -> NDArray:
+    '''Calculate normalized fy from y and fy.'''
+    fy_normalized = fy / norm
+    yfy, _, _ = others_from_y_and_fy(y=y, fy=fy)
+    return yfy / yfy.sum()
