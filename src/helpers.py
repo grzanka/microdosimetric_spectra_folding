@@ -22,6 +22,17 @@ def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
         # raise ZeroDivisionError("Sum of bin_values must be positive")
     return np.sum(bin_centers * bin_values) / np.sum(bin_values)
 
+def first_moment2(bin_edges: NDArray, bin_values: NDArray) -> float:
+    '''Calculate the first moment of a spectrum. It may be not normalized.'''
+    if bin_values.sum() == 0:
+        return np.nan
+        # raise ZeroDivisionError("Sum of bin_values must be positive")
+    bin_widths = np.diff(bin_edges)
+    nom = (0.5 * (bin_edges[1:]**2-bin_edges[:-1]**2) * bin_values).sum()
+    denom = (bin_values * bin_widths).sum()
+    return nom / denom
+
+
 def binning_type(bin_centers : NDArray) -> SpectrumBinningType:
     '''Determine the binning type from bin_centers.'''
     result = SpectrumBinningType.unknown
