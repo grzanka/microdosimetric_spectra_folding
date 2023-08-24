@@ -1,7 +1,6 @@
-import logging
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, SpectrumBinningType, SpectrumValueType, from_str
+from src.spectrum import Spectrum, SpectrumValueType
 
 def test_y_values_fun(small_spectrum: Spectrum):
     # bin centers 1 2 3 4

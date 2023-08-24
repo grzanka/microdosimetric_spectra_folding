@@ -1,7 +1,9 @@
+from enum import Enum, auto
 from typing import Callable
 import numpy as np
 from numpy.typing import NDArray
 from scipy.integrate import quad
+
 
 def step_function(x: float, norm: float = 1., lower: float = 0, upper: float = 2, zero: float = 0.0) -> float:
     if x < lower:

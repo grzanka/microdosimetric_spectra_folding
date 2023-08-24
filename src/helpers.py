@@ -15,18 +15,21 @@ class SpectrumBinningType(Enum):
     linear = auto()
     unknown = auto()
 
-def first_moment(bin_centers: NDArray, bin_values: NDArray) -> float:
+def first_moment(bin_edges: NDArray, bin_values: NDArray) -> float:
     '''Calculate the first moment of a spectrum. It may be not normalized.'''
     if bin_values.sum() == 0:
         return np.nan
-        # raise ZeroDivisionError("Sum of bin_values must be positive")
-    return np.sum(bin_centers * bin_values) / np.sum(bin_values)
+    bin_widths = np.diff(bin_edges)
+    nominator = (0.5 * (bin_edges[1:]**2-bin_edges[:-1]**2) * bin_values).sum()
+    denominator = (bin_values * bin_widths).sum()
+    return nominator / denominator
+
 
 def binning_type(bin_centers : NDArray) -> SpectrumBinningType:
     '''Determine the binning type from bin_centers.'''
     result = SpectrumBinningType.unknown
     # check if bin_centers form an arithmetic progression
-    if bin_centers.size >= 2 and np.all(np.diff(bin_centers) == bin_centers[1] - bin_centers[0]):
+    if bin_centers.size >= 2 and np.allclose(np.diff(bin_centers), bin_centers[1] - bin_centers[0]):
         result = SpectrumBinningType.linear
     # check if bin_centers form a geometric progression
     elif bin_centers.size >= 2 and np.allclose(np.diff(np.log(bin_centers)), np.log(bin_centers[1]) - np.log(bin_centers[0])):
@@ -59,7 +62,8 @@ def others_from_y_and_fy(y: NDArray, fy: NDArray) -> tuple[NDArray, NDArray, NDA
     '''Calculate yfy and ydy from y and fy.'''
 
     yfy = y * fy # yfy = y * f(y)
-    yF = first_moment(bin_centers=y, bin_values=fy)
+    edges = bin_edges(bin_centers=y, binning_type=binning_type(bin_centers=y))
+    yF = first_moment(bin_edges=edges, bin_values=fy)
 
     # d(y) = (y / yF) * f(y)
     dy = (y / yF) * fy
@@ -71,7 +75,8 @@ def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, N
     '''Calculate fy and ydy from y and yfy.'''
 
     fy = yfy / y # yfy = y * f(y)
-    yF = first_moment(bin_centers=y, bin_values=fy)
+    edges = bin_edges(bin_centers=y, binning_type=binning_type(bin_centers=y))
+    yF = first_moment(bin_edges=edges, bin_values=fy)
 
     # d(y) = (y / yF) * f(y)
     dy = (y / yF) * fy

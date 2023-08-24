@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.convolution import step_function, step_functions, function_norm
+from src.convolution.numerical import step_function, step_functions, function_norm
 
 def test_step_function(step_functions_with_factor, step_function_with_factor):
     assert step_function_with_factor(-1) == 0

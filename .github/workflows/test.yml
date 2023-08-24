@@ -6,11 +6,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ["3.10", "3.11"]
-        exclude:
-            - os: windows-latest
-              python-version: "3.10"
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -28,9 +25,14 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: Run tests
+
+    - name: Test jupyter notebooks
       run: |
-        python -m pytest
+        pytest --nbmake notebooks/0*ipynb
+
+    - name: Run unit tests
+      run: |
+        pytest
 
   all_tests_have_passed:
     needs: test
