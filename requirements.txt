@@ -16,3 +16,4 @@ mkdocs-coverage
 mkdocstrings[python]>=0.18
 mkdocs-material
 sympy
+nbmake
