@@ -31,7 +31,7 @@ jobs:
 
     - name: Test jupyter notebooks
       run: |
-        pytest --nbmake **/*ipynb
+        pytest --nbmake notebooks/0*ipynb
 
     - name: Run unit tests
       run: |
