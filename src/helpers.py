@@ -29,7 +29,7 @@ def binning_type(bin_centers : NDArray) -> SpectrumBinningType:
     '''Determine the binning type from bin_centers.'''
     result = SpectrumBinningType.unknown
     # check if bin_centers form an arithmetic progression
-    if bin_centers.size >= 2 and np.all(np.diff(bin_centers) == bin_centers[1] - bin_centers[0]):
+    if bin_centers.size >= 2 and np.allclose(np.diff(bin_centers), bin_centers[1] - bin_centers[0]):
         result = SpectrumBinningType.linear
     # check if bin_centers form a geometric progression
     elif bin_centers.size >= 2 and np.allclose(np.diff(np.log(bin_centers)), np.log(bin_centers[1]) - np.log(bin_centers[0])):

@@ -1,7 +1,8 @@
 import logging
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, SpectrumBinningType, from_str
+from src.spectrum import Spectrum, SpectrumBinningType
+from src.helpers import binning_type
 
 
 
@@ -140,3 +141,9 @@ def test_bin_numbers_unknown_binning(spectrum_unknown_binning: Spectrum):
         spectrum_unknown_binning.bin_centers(y=4)
     assert np.array_equal(spectrum_unknown_binning.bin_numbers(y=[4]), [2])
     assert spectrum_unknown_binning.bin_number(y=5.5) == 4
+
+
+def test_long_linear_bins():
+    y_values = np.linspace(start=-1, stop=3, num=100)
+    binning = binning_type(bin_centers=y_values)
+    assert binning == SpectrumBinningType.linear

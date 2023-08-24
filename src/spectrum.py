@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from io import StringIO
-import logging
 from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
