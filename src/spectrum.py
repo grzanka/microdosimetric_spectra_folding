@@ -60,18 +60,18 @@ class Spectrum:
 
         check_if_same_length_as_bin_centers(bin_centers=self.bin_centers, fy=self.bin_values_fy, yfy=self.bin_values_yfy, ydy=self.bin_values_ydy)
 
-        # set means
-        if self.bin_values_fy.size > 0:
-            object.__setattr__(self, 'yF', first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_fy))
-        if self.bin_values_dy.size > 0:
-            object.__setattr__(self, 'yD', first_moment(bin_centers=self.bin_centers, bin_values=self.bin_values_dy))
-
         # Set binning type
         object.__setattr__(self, 'binning_type', binning_type(self.bin_centers))
 
         # Set bin edges and bin widths
         object.__setattr__(self, 'bin_edges', bin_edges(self.bin_centers, self.binning_type))
         object.__setattr__(self, 'bin_widths', np.diff(self.bin_edges))
+
+        # set means
+        if self.bin_values_fy.size > 0:
+            object.__setattr__(self, 'yF', first_moment(bin_edges=self.bin_edges, bin_values=self.bin_values_fy))
+        if self.bin_values_dy.size > 0:
+            object.__setattr__(self, 'yD', first_moment(bin_edges=self.bin_edges, bin_values=self.bin_values_dy))
 
         # set normalized values if bin_centers are initialized
         object.__setattr__(self, 'norm', self.fy @ self.bin_widths)
