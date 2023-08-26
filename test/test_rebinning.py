@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, SpectrumValueType
+from src.spectrum import SpectrumData, SpectrumValueType
 
-def test_y_values_fun(small_spectrum: Spectrum):
+def test_y_values_fun(small_spectrum: SpectrumData):
     # bin centers 1 2 3 4
     # bin edges 0.5 1.5 2.5 3.5 4.5
     # fy: 0.1, 0.2, 0.3, 0.4

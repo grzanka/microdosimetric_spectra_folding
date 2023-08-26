@@ -8,7 +8,7 @@ from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_mome
 from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid, check_if_only_one_initialized, check_if_same_length_as_bin_centers
 
 @dataclass(frozen=True)
-class Spectrum:
+class SpectrumData:
     '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.
     
     z [ Gy ] = 0.204 * y [keV/um] / d^2 [um]
@@ -161,30 +161,41 @@ class Spectrum:
             output += f"{field_name}:\n{field_value}\n\n"
         
         return output
-    
-def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValueType.yfy) -> Spectrum:
+
+
+@dataclass(frozen=True)
+class LinealEnergySpectrum(SpectrumData):
+    data: SpectrumData = field(default_factory=lambda: SpectrumData())
+
+
+@dataclass(frozen=True)
+class SpecificEnergySpectrum(SpectrumData):
+    data: SpectrumData = field(default_factory=lambda: SpectrumData())
+
+
+def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValueType.yfy) -> SpectrumData:
     '''Load spectrum from array. The array must contain two columns: bin_centers and bin_values_fy.'''
     check_if_array_holds_spectrum(data_array)
-    result = Spectrum()
+    result = SpectrumData()
     if value_type == SpectrumValueType.fy:
-        result = Spectrum(bin_centers=data_array[:,0], bin_values_fy=data_array[:,1])
+        result = SpectrumData(bin_centers=data_array[:,0], bin_values_fy=data_array[:,1])
     elif value_type == SpectrumValueType.yfy:
-        result = Spectrum(bin_centers=data_array[:,0], bin_values_yfy=data_array[:,1])
+        result = SpectrumData(bin_centers=data_array[:,0], bin_values_yfy=data_array[:,1])
     elif value_type == SpectrumValueType.ydy:
-        result = Spectrum(bin_centers=data_array[:,0], bin_values_ydy=data_array[:,1])
+        result = SpectrumData(bin_centers=data_array[:,0], bin_values_ydy=data_array[:,1])
     return result
 
-def from_str(data_string : str, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:
+def from_str(data_string : str, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> SpectrumData:
     '''Load spectrum from string. The string must contain two columns: bin_centers and bin_values_fy.'''
     if data_string:
         data_array = np.genfromtxt(StringIO(data_string), **kwargs)
         check_if_array_holds_spectrum(data_array)
         result = from_array(data_array, value_type)
     else:
-        result = Spectrum()
+        result = SpectrumData()
     return result
 
-def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> Spectrum:
+def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs) -> SpectrumData:
     '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values_fy.'''
     data_array = np.genfromtxt(file_path, **kwargs)
     check_if_array_holds_spectrum(data_array)

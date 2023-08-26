@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.spectrum import Spectrum, first_moment
+from src.spectrum import SpectrumData, first_moment
 
 @pytest.fixture
 def example_data():
@@ -10,7 +10,7 @@ def example_data():
 
 def test_first_moment(example_data):
     bin_centers, bin_values = example_data
-    example_spectrum = Spectrum(bin_centers=bin_centers, bin_values_fy=bin_values)
+    example_spectrum = SpectrumData(bin_centers=bin_centers, bin_values_fy=bin_values)
     result = first_moment(example_spectrum.bin_edges, bin_values)
     expected_result = np.sum(bin_centers * bin_values) / np.sum(bin_values)
     assert result == pytest.approx(expected_result)
@@ -19,7 +19,7 @@ def test_first_moment(example_data):
 def test_first_moment_with_zeros():
     bin_centers = np.array([1, 2, 3, 4, 5])
     bin_values = np.array([0, 0, 0, 0, 0])
-    example_spectrum = Spectrum(bin_centers=bin_centers, bin_values_fy=bin_values)
+    example_spectrum = SpectrumData(bin_centers=bin_centers, bin_values_fy=bin_values)
     assert np.isnan(first_moment(example_spectrum.bin_edges, bin_values)), "First moment of zero values must be NaN"
 
 def test_moment_olko_phd_thesis_fig3p3(spectrum_fig3p3_olko_phd):
