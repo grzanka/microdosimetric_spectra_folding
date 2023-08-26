@@ -9,7 +9,10 @@ from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid
 
 @dataclass(frozen=True)
 class Spectrum:
-    '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.'''
+    '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.
+    
+    z [ Gy ] = 0.204 * y [keV/um] / d^2 [um]
+    '''
 
     bin_centers: NDArray = field(default_factory=lambda: np.empty(0))
 
