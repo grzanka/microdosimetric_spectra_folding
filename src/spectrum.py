@@ -243,3 +243,13 @@ def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.
     check_if_array_holds_spectrum(data_array)
     result = from_array(data_array, value_type)
     return result
+
+
+def specific_energy_spectum(lineal_energy_spectrum: LinealEnergySpectrum, site_diam_um : float) -> SpecificEnergySpectrum:
+    result = SpecificEnergySpectrum(
+        data=SpectrumData(
+        bin_centers=0.204 * lineal_energy_spectrum.y / site_diam_um**2, 
+        bin_values_freq=lineal_energy_spectrum.fy
+        )
+    )
+    return result
