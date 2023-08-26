@@ -5,15 +5,22 @@ from numpy.typing import NDArray
 
 class SpectrumValueType(Enum):
     '''Enum class for spectrum value types.'''
-    fy = auto()
-    yfy = auto()
-    ydy = auto()
+    freq = auto()
+    freq_times_bin_centers = auto()
+    dose_times_bin_centers = auto()
+    fy = freq
+    yfy = freq_times_bin_centers
+    ydy = dose_times_bin_centers
+    fz = freq
+    zfz = freq_times_bin_centers
+    zdz = dose_times_bin_centers
 
 class SpectrumBinningType(Enum):
     '''Enum class for spectrum binning types.'''
     log = auto()
     linear = auto()
     unknown = auto()
+    lin = linear
 
 def first_moment(bin_edges: NDArray, bin_values: NDArray) -> float:
     '''Calculate the first moment of a spectrum. It may be not normalized.'''
@@ -58,18 +65,18 @@ def bin_edges(bin_centers : NDArray, binning_type: SpectrumBinningType) -> NDArr
     return result
 
 
-def others_from_y_and_fy(y: NDArray, fy: NDArray) -> tuple[NDArray, NDArray, NDArray]:
-    '''Calculate yfy and ydy from y and fy.'''
+def others_from_freq_arrays(x: NDArray, freq: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate xfx and xdx from x and freq.'''
 
-    yfy = y * fy # yfy = y * f(y)
-    edges = bin_edges(bin_centers=y, binning_type=binning_type(bin_centers=y))
-    yF = first_moment(bin_edges=edges, bin_values=fy)
+    xfx = x * freq # yfy = y * f(y)
+    edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
+    xF = first_moment(bin_edges=edges, bin_values=freq)
 
-    # d(y) = (y / yF) * f(y)
-    dy = (y / yF) * fy
-    ydy = y * dy
+    # d(x) = (x / xF) * f(x)
+    dx = (x / xF) * freq
+    xdx = x * dx
 
-    return yfy, dy, ydy
+    return xfx, dx, xdx
 
 def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, NDArray]:
     '''Calculate fy and ydy from y and yfy.'''
@@ -86,5 +93,5 @@ def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, N
 def normalized_fy(y: NDArray, fy: NDArray, norm: float) -> NDArray:
     '''Calculate normalized fy from y and fy.'''
     fy_normalized = fy / norm
-    yfy, _, _ = others_from_y_and_fy(y=y, fy=fy)
+    yfy, _, _ = others_from_freq_arrays(x=y, freq=fy)
     return yfy / yfy.sum()

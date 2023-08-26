@@ -2,13 +2,13 @@ import logging
 import numpy as np
 from numpy.typing import NDArray
 
-def check_if_only_one_initialized(fy: NDArray, yfy: NDArray, ydy: NDArray):
+def check_if_only_one_initialized(freq: NDArray, freq_times_x: NDArray, dose_times_x: NDArray):
     '''Check if the two arrays are not None and have the same size.'''    
-    if fy.size == 0 and yfy.size != 0 and ydy.size != 0 \
-        or fy.size != 0 and yfy.size == 0 and ydy.size != 0 \
-        or fy.size != 0 and yfy.size != 0 and ydy.size == 0:
+    if freq.size == 0 and freq_times_x.size != 0 and dose_times_x.size != 0 \
+        or freq.size != 0 and freq_times_x.size == 0 and dose_times_x.size != 0 \
+        or freq.size != 0 and freq_times_x.size != 0 and dose_times_x.size == 0:
             raise ValueError("Only one of fy, yfy, ydy must be initialized (not two)")
-    if fy.size != 0 and yfy.size != 0 and ydy.size != 0:
+    if freq.size != 0 and freq_times_x.size != 0 and dose_times_x.size != 0:
         raise ValueError("Only one of fy, yfy, ydy must be initialized (not three)")
     
 def check_if_array_holds_spectrum(data_array: NDArray):

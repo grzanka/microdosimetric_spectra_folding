@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from src.spectrum import Spectrum, SpectrumValueType
+from src.spectrum import SpectrumData, SpectrumValueType
 
-def test_y_values_fun(small_spectrum: Spectrum):
+def test_y_values_fun(small_spectrum: SpectrumData):
     # bin centers 1 2 3 4
     # bin edges 0.5 1.5 2.5 3.5 4.5
     # fy: 0.1, 0.2, 0.3, 0.4
@@ -29,7 +29,7 @@ def test_y_values_fun(small_spectrum: Spectrum):
         0.4, 0.4,
         0, 0
         ])
-    rebinned_fy_values = small_spectrum.bin_values(y=y_values, spectrum_value_type=SpectrumValueType.fy)
+    rebinned_fy_values = small_spectrum.bin_values(x=y_values, spectrum_value_type=SpectrumValueType.freq)
     assert np.array_equal(rebinned_fy_values, expected_fy_values)
-    assert small_spectrum.bin_value(y=0.3, spectrum_value_type=SpectrumValueType.fy) == pytest.approx(0)
-    assert small_spectrum.bin_value(y=0.5, spectrum_value_type=SpectrumValueType.fy) == pytest.approx(0.1)
+    assert small_spectrum.bin_value(x=0.3, spectrum_value_type=SpectrumValueType.freq) == pytest.approx(0)
+    assert small_spectrum.bin_value(x=0.5, spectrum_value_type=SpectrumValueType.freq) == pytest.approx(0.1)
