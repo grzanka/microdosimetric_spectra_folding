@@ -28,34 +28,33 @@ def test_spectrum_with_zero_bin_values():
     spectrum = SpectrumData.from_lists([1, 2, 3], [0, 0, 0])
     assert spectrum.num_bins == 3
     assert spectrum.binning_type == SpectrumBinningType.linear
-    assert np.isnan(spectrum.yF), "yF must be NaN if bin_values are all zero"
+    assert np.isnan(spectrum.freq_mean), "mean freq must be NaN if bin_values are all zero"
 
 
 
-def test_creation_from_lists(spectrum_fig3p3_olko_phd):
-    bin_centers = spectrum_fig3p3_olko_phd.bin_centers.tolist()
-    bin_values_fy = spectrum_fig3p3_olko_phd.bin_values_fy.tolist()
+def test_creation_from_lists(spectrum_data_fig3p3_olko_phd: SpectrumData):
+    bin_centers = spectrum_data_fig3p3_olko_phd.bin_centers.tolist()
+    bin_values_freq = spectrum_data_fig3p3_olko_phd.bin_values_freq.tolist()
 
-    spectrum = SpectrumData.from_lists(bin_centers, fy_list=bin_values_fy)
+    spectrum = SpectrumData.from_lists(bin_centers, freq=bin_values_freq)
     assert spectrum.num_bins == len(bin_centers)
-    assert np.array_equal(spectrum.bin_values_fy, spectrum_fig3p3_olko_phd.bin_values_fy)
-    assert np.array_equal(spectrum.yF, spectrum_fig3p3_olko_phd.yF)
-    assert np.array_equal(spectrum.fy, spectrum_fig3p3_olko_phd.fy)
-    assert np.array_equal(spectrum.yfy, spectrum_fig3p3_olko_phd.yfy)
-    assert np.array_equal(spectrum.ydy, spectrum_fig3p3_olko_phd.ydy)
+    assert np.array_equal(spectrum.bin_values_freq, spectrum_data_fig3p3_olko_phd.bin_values_freq)
+    assert np.array_equal(spectrum.freq_mean, spectrum_data_fig3p3_olko_phd.freq_mean)
+    assert np.array_equal(spectrum.bin_values_freq_times_x, spectrum_data_fig3p3_olko_phd.bin_values_freq_times_x)
+    assert np.array_equal(spectrum.bin_values_dose_times_x, spectrum_data_fig3p3_olko_phd.bin_values_dose_times_x)
 
 def test_invalid_initialization():
-    y_list = [1, 2, 3, 4, 5]
-    fy_list = [3, 6, 2, 8, 5]
-    yfy_list = [2, 4, 6, 8, 10]
+    x_list = [1, 2, 3, 4, 5]
+    freq_list = [3, 6, 2, 8, 5]
+    freq_times_x_list = [2, 4, 6, 8, 10]
 
     # Trying to initialize with conflicting values
     with pytest.raises(ValueError):
-        SpectrumData.from_lists(y_list=y_list, fy_list=fy_list, yfy_list=yfy_list)
+        SpectrumData.from_lists(x=x_list, freq=freq_list, freq_times_x=freq_times_x_list)
 
     # Trying to initialize with missing values
     with pytest.raises(ValueError):
-        SpectrumData.from_lists(y_list)
+        SpectrumData.from_lists(x_list)
 
 
 def test_if_printout_has_multiple_lines(small_spectrum: SpectrumData, capsys):
@@ -82,7 +81,7 @@ def test_loading_from_str_with_fy():
     assert spectrum.num_bins == 5
 
 def test_bin_centers_not_sorted():
-    y_list = [1, 2, 3, 4, 3.5]
-    fy_list = [3, 6, 2, 8, 5]
+    x_list = [1, 2, 3, 4, 3.5]
+    freq_list = [3, 6, 2, 8, 5]
     with pytest.raises(ValueError):
-        SpectrumData.from_lists(y_list, fy_list=fy_list)
+        SpectrumData.from_lists(x_list, freq=freq_list)
