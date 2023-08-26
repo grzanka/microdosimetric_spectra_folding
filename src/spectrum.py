@@ -11,8 +11,6 @@ from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid
 @dataclass(frozen=True)
 class SpectrumData:
     '''Spectrum class. It is immutable. It can be initialized from bin_centers and one of bin_values_fy, bin_values_yfy, bin_values_ydy.
-    
-    z [ Gy ] = 0.204 * y [keV/um] / d^2 [um]
     '''
 
     bin_centers: NDArray = field(default_factory=lambda: np.empty(0))
@@ -179,8 +177,42 @@ class LinealEnergySpectrum:
         return LinealEnergySpectrum(data=data)
 
 @dataclass(frozen=True)
-class SpecificEnergySpectrum(SpectrumData):
+class SpecificEnergySpectrum:
     data: SpectrumData = field(default_factory=lambda: SpectrumData())
+
+    @property
+    def z(self) -> NDArray:
+        return self.data.bin_centers
+    
+    @property
+    def fz(self) -> NDArray:
+        return self.data.bin_values_freq
+    
+    @property
+    def zfz(self) -> NDArray:
+        return self.data.bin_values_freq_times_x
+    
+    @property
+    def zdz(self) -> NDArray:
+        return self.data.bin_values_dose_times_x
+    
+    @property
+    def zF(self) -> float:
+        return self.data.freq_mean
+    
+    @property
+    def zD(self) -> float:
+        return self.data.dose_mean
+    
+    @property
+    def norm(self) -> float:
+        return self.data.norm
+    
+    @staticmethod
+    def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers, **kwargs):
+        '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values.'''
+        data : SpectrumData = from_csv(file_path, value_type, **kwargs)
+        return SpecificEnergySpectrum(data=data)
 
 
 def from_array(data_array: NDArray, value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers) -> SpectrumData:
