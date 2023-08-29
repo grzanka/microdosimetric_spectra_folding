@@ -136,8 +136,6 @@ class SpectrumData:
             output += f"{field_name}:\n{field_value}\n\n"
         
         return output
-
-
 @dataclass(frozen=True)
 class LinealEnergySpectrum:
     data: SpectrumData = field(default_factory=lambda: SpectrumData())
