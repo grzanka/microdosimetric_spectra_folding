@@ -78,17 +78,17 @@ def others_from_freq_arrays(x: NDArray, freq: NDArray) -> tuple[NDArray, NDArray
 
     return xfx, dx, xdx
 
-def others_from_y_and_yfy(y: NDArray, yfy: NDArray) -> tuple[NDArray, NDArray, NDArray]:
-    '''Calculate fy and ydy from y and yfy.'''
+def others_from_x_times_freq(x: NDArray, x_times_freq: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate freq and dose from yfy/zfz.'''
 
-    fy = yfy / y # yfy = y * f(y)
-    edges = bin_edges(bin_centers=y, binning_type=binning_type(bin_centers=y))
-    yF = first_moment(bin_edges=edges, bin_values=fy)
+    freq = x_times_freq / x # yfy = y * f(y)
+    edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
+    xF = first_moment(bin_edges=edges, bin_values=freq)
 
     # d(y) = (y / yF) * f(y)
-    dy = (y / yF) * fy
-    ydy = y * dy
-    return fy, dy, ydy
+    dose_freq = (x / xF) * freq
+    dose_times_freq = x * dose_freq
+    return freq, dose_freq, dose_times_freq
 
 def normalized_fy(y: NDArray, fy: NDArray, norm: float) -> NDArray:
     '''Calculate normalized fy from y and fy.'''

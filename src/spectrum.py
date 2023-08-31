@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType, others_from_freq_arrays, others_from_y_and_yfy
+from src.helpers import SpectrumBinningType, bin_edges, binning_type, first_moment, SpectrumValueType, others_from_freq_arrays, others_from_x_times_freq
 from src.checks import check_if_array_holds_spectrum, check_if_bin_centers_valid, check_if_only_one_initialized, check_if_same_length_as_bin_centers
 
 @dataclass(frozen=True)
@@ -44,9 +44,9 @@ class SpectrumData:
                                       freq_times_x=self.bin_values_freq_times_x, 
                                       dose_times_x=self.bin_values_dose_times_x)
         
-        logging.info(f"bin_values_freq: {self.bin_values_freq}")
-        logging.info(f"bin_values_freq_times_x: {self.bin_values_freq_times_x}")
-        logging.info(f"bin_values_dose_times_x: {self.bin_values_dose_times_x}")
+        logging.debug(f"bin_values_freq: {self.bin_values_freq}")
+        logging.debug(f"bin_values_freq_times_x: {self.bin_values_freq_times_x}")
+        logging.debug(f"bin_values_dose_times_x: {self.bin_values_dose_times_x}")
 
 
         freq = dose = freq_times_x = dose_times_x = np.empty(0)
@@ -55,8 +55,12 @@ class SpectrumData:
             freq_times_x, dose, dose_times_x = others_from_freq_arrays(x=self.bin_centers, freq=self.bin_values_freq)
         if self.bin_values_freq_times_x.size != 0:
             freq_times_x = self.bin_values_freq_times_x
-            freq, dose, dose_times_x = others_from_y_and_yfy(y=self.bin_centers, yfy=freq_times_x)
-        if self.bin_values_dose_times_x.size != 0 or self.bin_values_dose.size != 0:
+            freq, dose, dose_times_x = others_from_x_times_freq(x=self.bin_centers, x_times_freq=freq_times_x)
+        if self.bin_values_dose.size != 0:
+            dose = self.bin_values_dose
+            raise NotImplementedError("deriving spectrum from dy or ydy is not implemented yet")
+        if self.bin_values_dose_times_x.size != 0:
+            dose_times_x = self.bin_values_dose_times_x
             raise NotImplementedError("deriving spectrum from dy or ydy is not implemented yet")
         if self.bin_values_freq.size == 0:
             object.__setattr__(self, 'bin_values_freq', freq)
@@ -169,7 +173,7 @@ class LinealEnergySpectrum:
         return self.data.norm
     
     @staticmethod
-    def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers, **kwargs):
+    def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs):
         '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values_fy.'''
         data : SpectrumData = from_csv(file_path, value_type, **kwargs)
         return LinealEnergySpectrum(data=data)
@@ -207,7 +211,7 @@ class SpecificEnergySpectrum:
         return self.data.norm
     
     @staticmethod
-    def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers, **kwargs):
+    def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.zfz, **kwargs):
         '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values.'''
         data : SpectrumData = from_csv(file_path, value_type, **kwargs)
         return SpecificEnergySpectrum(data=data)
