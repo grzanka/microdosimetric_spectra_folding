@@ -66,7 +66,7 @@ def bin_edges(bin_centers : NDArray, binning_type: SpectrumBinningType) -> NDArr
 
 
 def others_from_freq_arrays(x: NDArray, freq: NDArray) -> tuple[NDArray, NDArray, NDArray]:
-    '''Calculate xfx and xdx from x and freq.'''
+    '''Calculate yfy/zfz and ydy/zdz from y/z and freq (fy/fz).'''
 
     xfx = x * freq # yfy = y * f(y)
     edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
@@ -79,16 +79,53 @@ def others_from_freq_arrays(x: NDArray, freq: NDArray) -> tuple[NDArray, NDArray
     return xfx, dx, xdx
 
 def others_from_x_times_freq(x: NDArray, x_times_freq: NDArray) -> tuple[NDArray, NDArray, NDArray]:
-    '''Calculate freq and dose from yfy/zfz.'''
+    '''Calculate fy/fz (freq), dy/dz (dose) and ydy/zdz (dose times x) from y/z and yfy/zfz.'''
 
-    freq = x_times_freq / x # yfy = y * f(y)
+    freq = x_times_freq / x # yfy = y * f(y) / zfz = z * f(z)
     edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
     xF = first_moment(bin_edges=edges, bin_values=freq)
 
     # d(y) = (y / yF) * f(y)
-    dose_freq = (x / xF) * freq
-    dose_times_freq = x * dose_freq
-    return freq, dose_freq, dose_times_freq
+    dose = (x / xF) * freq
+    dose_times_x = x * dose
+    return freq, dose, dose_times_x
+
+def others_from_dose_arrays(x: NDArray, dose: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate fy/fz, yfy/zfz and ydy/zdz from y/z and dose (dy/dz).'''
+
+    xdx = x * dose # ydy = y * d(y) / zdz = z * d(z)
+    edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
+    widths = np.diff(edges)
+
+    # d(x) = (x / xF) * f(x)
+    # f_unnorm(x) = d(x) / x
+    # calculate unnormalized freq distribution as we cannot determine xF yet
+    freq_not_norm = dose / x
+    norm = widths @ freq_not_norm
+    freq = freq_not_norm / norm if norm != 0 else np.zeros_like(freq_not_norm)
+
+    x_times_freq = x * freq
+
+    return freq, x_times_freq, xdx
+
+def others_from_x_times_dose_arrays(x: NDArray, x_times_dose: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+    '''Calculate fy/fz, yfy/zfz and dy/dz from y/z and ydy/zdz.'''
+
+    dose = x_times_dose / x # ydy = y * d(y) / zdz = z * d(z)
+    edges = bin_edges(bin_centers=x, binning_type=binning_type(bin_centers=x))
+    widths = np.diff(edges)
+
+    # d(x) = (x / xF) * f(x)
+    # f_unnorm(x) = d(x) / x
+    # calculate unnormalized freq distribution as we cannot determine xF yet
+    freq_not_norm = dose / x
+    norm = widths @ freq_not_norm
+    freq = freq_not_norm / norm if norm != 0 else np.zeros_like(freq_not_norm)
+
+    x_times_freq = x * freq
+
+    return freq, x_times_freq, dose
+
 
 def normalized_fy(y: NDArray, fy: NDArray, norm: float) -> NDArray:
     '''Calculate normalized fy from y and fy.'''

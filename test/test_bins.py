@@ -61,9 +61,9 @@ def test_bin_numbers(small_spectrum: SpectrumData):
         2.5, 3, # bin 2
         3.5, 4, # bin 3
         4.5, 5 # bin 4
-        ]) 
+        ])
     expected_bin_numbers = np.array([
-        -1, -1, -1, 
+        -1, -1, -1,
         0, 0, 0,
         1, 1,
         2, 2,
@@ -93,9 +93,9 @@ def test_bin_numbers_log_spectrum(spectrum_log_binning: SpectrumData):
         5, 10, 30, # bin 2
         32, 100, # bin 3
         317, 1000 # bin 4
-        ]) 
+        ])
     expected_bin_numbers = np.array([
-        -1, -1, -1, 
+        -1, -1, -1,
         0, 0,
         1, 1, 1,
         2, 2, 2,
@@ -126,9 +126,9 @@ def test_bin_numbers_unknown_binning(spectrum_unknown_binning: SpectrumData):
         3, 3.5, 4, # bin 2
         4.5, 5, # bin 3
         5.5, 6 # bin 4
-        ]) 
+        ])
     expected_bin_numbers = np.array([
-        -1, -1, -1, 
+        -1, -1, -1,
         0, 0, 0,
         1, 1,
         2, 2, 2,

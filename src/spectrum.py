@@ -30,7 +30,7 @@ class SpectrumData:
 
     bin_edges: NDArray = field(default_factory=lambda: np.empty(0))
     bin_widths: NDArray = field(default_factory=lambda: np.empty(0))
-    
+
     bin_nums: int = 0
     norm: float = np.nan
     freq_mean: float = np.nan
@@ -40,10 +40,10 @@ class SpectrumData:
         check_if_bin_centers_valid(self.bin_centers)
         object.__setattr__(self, 'num_bins', self.bin_centers.size)
 
-        check_if_only_one_initialized(freq=self.bin_values_freq, 
-                                      freq_times_x=self.bin_values_freq_times_x, 
+        check_if_only_one_initialized(freq=self.bin_values_freq,
+                                      freq_times_x=self.bin_values_freq_times_x,
                                       dose_times_x=self.bin_values_dose_times_x)
-        
+
         logging.debug(f"bin_values_freq: {self.bin_values_freq}")
         logging.debug(f"bin_values_freq_times_x: {self.bin_values_freq_times_x}")
         logging.debug(f"bin_values_dose_times_x: {self.bin_values_dose_times_x}")
@@ -69,9 +69,9 @@ class SpectrumData:
         object.__setattr__(self, 'bin_values_dose', dose)
         object.__setattr__(self, 'bin_values_dose_times_x', dose_times_x)
 
-        check_if_same_length_as_bin_centers(bin_centers=self.bin_centers, 
-                                            fy=self.bin_values_freq, 
-                                            yfy=self.bin_values_freq_times_x, 
+        check_if_same_length_as_bin_centers(bin_centers=self.bin_centers,
+                                            fy=self.bin_values_freq,
+                                            yfy=self.bin_values_freq_times_x,
                                             ydy=self.bin_values_dose_times_x)
 
         # Set binning type
@@ -99,13 +99,13 @@ class SpectrumData:
     def bin_numbers(self, x : NDArray) -> NDArray:
         '''Return the indices of the bins to which each value in input array belongs.'''
         return np.digitize(x=x, bins=self.bin_edges) - 1
-    
+
     def bin_number(self, x : float) -> float:
         '''Return the index of the bins to which the value belongs.'''
         return self.bin_numbers(np.array([x]))[0]
-    
+
     def bin_values(self, x : NDArray, spectrum_value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers) -> float:
-        '''Return the value of the bin to which the value belongs.'''   
+        '''Return the value of the bin to which the value belongs.'''
         ind = self.bin_numbers(x)
         ind[ind < 0] = -1
         ind[ind >= self.bin_centers.size] = -1
@@ -117,19 +117,19 @@ class SpectrumData:
         elif spectrum_value_type == SpectrumValueType.dose_times_bin_centers:
             bin_values_extended[1:-1] = self.bin_values_dose_times_x
         return bin_values_extended.take(indices=ind+1, mode='clip')
-    
+
     def bin_value(self, x : float, spectrum_value_type: SpectrumValueType = SpectrumValueType.freq_times_bin_centers) -> float:
         '''Return the value of the bin to which the value belongs.'''
         return self.bin_values(np.array([x]), spectrum_value_type)[0]
-    
+
     @classmethod
     def from_lists(cls, x : list=[], freq : list =[], freq_times_x: list=[], dose_times_x: list=[]):
         freq_array = np.array(freq) if freq else np.empty(0)
         freq_times_x_array = np.array(freq_times_x) if freq_times_x else np.empty(0)
         dose_times_x_array = np.array(dose_times_x) if dose_times_x else np.empty(0)
-        return cls(bin_centers = np.array(x), 
-                   bin_values_freq=freq_array, 
-                   bin_values_freq_times_x=freq_times_x_array, 
+        return cls(bin_centers = np.array(x),
+                   bin_values_freq=freq_array,
+                   bin_values_freq_times_x=freq_times_x_array,
                    bin_values_dose_times_x=dose_times_x_array)
 
     def __str__(self):
@@ -138,7 +138,7 @@ class SpectrumData:
         output = ""
         for field_name, field_value in fields:
             output += f"{field_name}:\n{field_value}\n\n"
-        
+
         return output
 @dataclass(frozen=True)
 class LinealEnergySpectrum:
@@ -147,15 +147,15 @@ class LinealEnergySpectrum:
     @property
     def y(self) -> NDArray:
         return self.data.bin_centers
-    
+
     @property
     def fy(self) -> NDArray:
         return self.data.bin_values_freq
-    
+
     @property
     def yfy(self) -> NDArray:
         return self.data.bin_values_freq_times_x
-    
+
     @property
     def ydy(self) -> NDArray:
         return self.data.bin_values_dose_times_x
@@ -167,11 +167,11 @@ class LinealEnergySpectrum:
     @property
     def yD(self) -> float:
         return self.data.dose_mean
-    
+
     @property
     def norm(self) -> float:
         return self.data.norm
-    
+
     @staticmethod
     def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.yfy, **kwargs):
         '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values_fy.'''
@@ -185,31 +185,31 @@ class SpecificEnergySpectrum:
     @property
     def z(self) -> NDArray:
         return self.data.bin_centers
-    
+
     @property
     def fz(self) -> NDArray:
         return self.data.bin_values_freq
-    
+
     @property
     def zfz(self) -> NDArray:
         return self.data.bin_values_freq_times_x
-    
+
     @property
     def zdz(self) -> NDArray:
         return self.data.bin_values_dose_times_x
-    
+
     @property
     def zF(self) -> float:
         return self.data.freq_mean
-    
+
     @property
     def zD(self) -> float:
         return self.data.dose_mean
-    
+
     @property
     def norm(self) -> float:
         return self.data.norm
-    
+
     @staticmethod
     def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.zfz, **kwargs):
         '''Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values.'''
@@ -250,7 +250,7 @@ def from_csv(file_path: Path, value_type: SpectrumValueType = SpectrumValueType.
 def specific_energy_spectum(lineal_energy_spectrum: LinealEnergySpectrum, site_diam_um : float) -> SpecificEnergySpectrum:
     result = SpecificEnergySpectrum(
         data=SpectrumData(
-        bin_centers=0.204 * lineal_energy_spectrum.y / site_diam_um**2, 
+        bin_centers=0.204 * lineal_energy_spectrum.y / site_diam_um**2,
         bin_values_freq=lineal_energy_spectrum.fy
         )
     )

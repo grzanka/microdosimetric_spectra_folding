@@ -26,5 +26,3 @@ def test_dy(spectrum_data_fig3p3_olko_phd: SpectrumData):
 
 def test_dy(spectrum_data_fig3p3_olko_phd: SpectrumData):
     assert np.array_equal(spectrum_data_fig3p3_olko_phd.bin_values_dose_times_x, [1,4,9])
-
-

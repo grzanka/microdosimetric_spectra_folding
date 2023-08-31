@@ -20,9 +20,9 @@ def test_y_values_fun(small_spectrum: SpectrumData):
         2.5, 3, # bin 2, value 0.3
         3.5, 4, # bin 3, value 0.4
         4.5, 5 # bin 4, value 0
-        ]) 
+        ])
     expected_fy_values = np.array([
-        0, 0, 0, 
+        0, 0, 0,
         0.1, 0.1, 0.1,
         0.2, 0.2,
         0.3, 0.3,

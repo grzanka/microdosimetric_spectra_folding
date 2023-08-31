@@ -30,7 +30,7 @@ def convolution_integrand(func: Callable) -> Callable:
   return _convolution_integrand
 
 def convolution(func: Callable, lower_limit : float = -np.inf, upper_limit : float = np.inf, args: tuple = (), kwargs: dict = {}) -> Callable:
-  '''Return the convolution of func with itself.'''  
+  '''Return the convolution of func with itself.'''
   def _convolution(y: float, integrand_args: tuple = ()) -> float:
     integrand = convolution_integrand(func)
     return quad(func=integrand, a=lower_limit, b=upper_limit, args=(y, integrand_args), *args, **kwargs)
