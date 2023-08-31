@@ -11,7 +11,9 @@ from src.helpers import (
     binning_type,
     first_moment,
     SpectrumValueType,
+    others_from_dose_arrays,
     others_from_freq_arrays,
+    others_from_x_times_dose_arrays,
     others_from_x_times_freq,
 )
 from src.checks import (
@@ -80,13 +82,13 @@ class SpectrumData:
             )
         if self.bin_values_dose.size != 0:
             dose = self.bin_values_dose
-            raise NotImplementedError(
-                "deriving spectrum from dy or ydy is not implemented yet"
+            freq, freq_times_x, dose_times_x = others_from_dose_arrays(
+                x=self.bin_centers, dose=self.bin_values_dose
             )
         if self.bin_values_dose_times_x.size != 0:
             dose_times_x = self.bin_values_dose_times_x
-            raise NotImplementedError(
-                "deriving spectrum from dy or ydy is not implemented yet"
+            freq, freq_times_x, dose = others_from_x_times_dose_arrays(
+                x=self.bin_centers, x_times_dose=dose_times_x
             )
         if self.bin_values_freq.size == 0:
             object.__setattr__(self, "bin_values_freq", freq)
