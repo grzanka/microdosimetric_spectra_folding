@@ -8,9 +8,11 @@ def test_empty_spectrum():
     assert empty_spectrum.num_bins == 0
     assert empty_spectrum.binning_type == SpectrumBinningType.unknown
 
+
 def test_negative_spectrum():
     with pytest.raises(ValueError):
         SpectrumData.from_lists([-1, 0, 1], [-1, -2, -3])
+
 
 def test_spectrum_with_one_bin():
     spectrum = SpectrumData.from_lists([1], [1])
@@ -24,12 +26,14 @@ def test_spectrum_with_one_bin():
     assert np.isnan(spectrum.bin_edges[0])
     assert np.isnan(spectrum.bin_edges[1])
 
+
 def test_spectrum_with_zero_bin_values():
     spectrum = SpectrumData.from_lists([1, 2, 3], [0, 0, 0])
     assert spectrum.num_bins == 3
     assert spectrum.binning_type == SpectrumBinningType.linear
-    assert np.isnan(spectrum.freq_mean), "mean freq must be NaN if bin_values are all zero"
-
+    assert np.isnan(
+        spectrum.freq_mean
+    ), "mean freq must be NaN if bin_values are all zero"
 
 
 def test_creation_from_lists(spectrum_data_fig3p3_olko_phd: SpectrumData):
@@ -38,10 +42,19 @@ def test_creation_from_lists(spectrum_data_fig3p3_olko_phd: SpectrumData):
 
     spectrum = SpectrumData.from_lists(bin_centers, freq=bin_values_freq)
     assert spectrum.num_bins == len(bin_centers)
-    assert np.array_equal(spectrum.bin_values_freq, spectrum_data_fig3p3_olko_phd.bin_values_freq)
+    assert np.array_equal(
+        spectrum.bin_values_freq, spectrum_data_fig3p3_olko_phd.bin_values_freq
+    )
     assert np.array_equal(spectrum.freq_mean, spectrum_data_fig3p3_olko_phd.freq_mean)
-    assert np.array_equal(spectrum.bin_values_freq_times_x, spectrum_data_fig3p3_olko_phd.bin_values_freq_times_x)
-    assert np.array_equal(spectrum.bin_values_dose_times_x, spectrum_data_fig3p3_olko_phd.bin_values_dose_times_x)
+    assert np.array_equal(
+        spectrum.bin_values_freq_times_x,
+        spectrum_data_fig3p3_olko_phd.bin_values_freq_times_x,
+    )
+    assert np.array_equal(
+        spectrum.bin_values_dose_times_x,
+        spectrum_data_fig3p3_olko_phd.bin_values_dose_times_x,
+    )
+
 
 def test_invalid_initialization():
     x_list = [1, 2, 3, 4, 5]
@@ -50,7 +63,9 @@ def test_invalid_initialization():
 
     # Trying to initialize with conflicting values
     with pytest.raises(ValueError):
-        SpectrumData.from_lists(x=x_list, freq=freq_list, freq_times_x=freq_times_x_list)
+        SpectrumData.from_lists(
+            x=x_list, freq=freq_list, freq_times_x=freq_times_x_list
+        )
 
     # Trying to initialize with missing values
     with pytest.raises(ValueError):
@@ -62,6 +77,7 @@ def test_if_printout_has_multiple_lines(small_spectrum: SpectrumData, capsys):
     captured = capsys.readouterr()
     output_lines = captured.out.splitlines()
     assert len(output_lines) > 1
+
 
 def test_loading_from_str_with_fy():
     empty_str = ""
@@ -79,6 +95,7 @@ def test_loading_from_str_with_fy():
     str_with_commas = "1,2\n3,4\n5,6\n7,8\n9,10"
     spectrum = from_str(str_with_commas, delimiter=",")
     assert spectrum.num_bins == 5
+
 
 def test_bin_centers_not_sorted():
     x_list = [1, 2, 3, 4, 3.5]

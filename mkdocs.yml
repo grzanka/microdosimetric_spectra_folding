@@ -6,7 +6,7 @@ copyright: Copyright &copy; 2023 Leszek Grzanka
 
 nav:
 
-- Home: 
+- Home:
   - Overview: index.md
 - Coverage report: coverage.md
 
