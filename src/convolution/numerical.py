@@ -40,7 +40,18 @@ def function_norm(
     return result
 
 
-def convolution_integrand(func: Callable) -> Callable:
+def convolution_integrand(first_func: Callable, second_func: Callable) -> Callable:
+    """Return the integrand of the convolution integral of func with itself."""
+
+    def _convolution_integrand(
+        t: float, y: float, args: tuple = (), kwargs: dict = {}
+    ) -> float:
+        return first_func(t, *args, **kwargs) * second_func(y - t, *args, **kwargs)
+
+    return _convolution_integrand
+
+
+def self_convolution_integrand(func: Callable) -> Callable:
     """Return the integrand of the convolution integral of func with itself."""
 
     def _convolution_integrand(
@@ -51,7 +62,7 @@ def convolution_integrand(func: Callable) -> Callable:
     return _convolution_integrand
 
 
-def convolution(
+def self_convolution(
     func: Callable,
     lower_limit: float = -np.inf,
     upper_limit: float = np.inf,
@@ -61,7 +72,7 @@ def convolution(
     """Return the convolution of func with itself."""
 
     def _convolution(y: float, integrand_args: tuple = ()) -> float:
-        integrand = convolution_integrand(func)
+        integrand = self_convolution_integrand(func)
         return quad(
             func=integrand,
             a=lower_limit,
