@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Callable
+from typing import Callable, Tuple, Union
 import numpy as np
 from numpy.typing import NDArray
 from scipy.integrate import quad
@@ -30,9 +30,14 @@ def function_norm(
     lower_limit: float = -np.inf,
     upper_limit: float = np.inf,
     args: tuple = (),
-) -> float:
-    I = quad(func=func, a=lower_limit, b=upper_limit, args=args)
-    return I[0]
+    kwargs: dict = {},
+    include_error: bool = False,
+) -> Union[float, Tuple[float, float]]:
+    I = quad(func=func, a=lower_limit, b=upper_limit, args=args, **kwargs)
+    result = I[0]
+    if include_error:
+        result = I
+    return result
 
 
 def convolution_integrand(func: Callable) -> Callable:
