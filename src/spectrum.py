@@ -256,6 +256,7 @@ class LinealEnergySpectrum:
 @dataclass(frozen=True)
 class SpecificEnergySpectrum:
     data: SpectrumData = field(default_factory=lambda: SpectrumData())
+    site_diam_um: float = np.nan
 
     @property
     def z(self) -> NDArray:
@@ -287,11 +288,14 @@ class SpecificEnergySpectrum:
 
     @staticmethod
     def from_csv(
-        file_path: Path, value_type: SpectrumValueType = SpectrumValueType.zfz, **kwargs
+        file_path: Path,
+        site_diam_um: float,
+        value_type: SpectrumValueType = SpectrumValueType.zfz,
+        **kwargs,
     ):
         """Load spectrum from csv file. The file must contain two columns: bin_centers and bin_values."""
         data: SpectrumData = from_csv(file_path, value_type, **kwargs)
-        return SpecificEnergySpectrum(data=data)
+        return SpecificEnergySpectrum(data=data, site_diam_um=site_diam_um)
 
 
 def from_array(
@@ -347,9 +351,26 @@ def specific_energy_spectum(
     lineal_energy_spectrum: LinealEnergySpectrum, site_diam_um: float
 ) -> SpecificEnergySpectrum:
     result = SpecificEnergySpectrum(
+        # z = 0.204 * y / diam**2
         data=SpectrumData(
             bin_centers=0.204 * lineal_energy_spectrum.y / site_diam_um**2,
             bin_values_freq=lineal_energy_spectrum.fy,
+        ),
+        site_diam_um=site_diam_um,
+    )
+    return result
+
+
+def lineal_energy_spectum(
+    specific_energy_spectrum: SpecificEnergySpectrum,
+) -> LinealEnergySpectrum:
+    result = LinealEnergySpectrum(
+        data=SpectrumData(
+            bin_centers=(
+                specific_energy_spectrum.z * specific_energy_spectrum.site_diam_um**2
+            )
+            / 0.204,
+            bin_values_freq=specific_energy_spectrum.fz,
         )
     )
     return result
