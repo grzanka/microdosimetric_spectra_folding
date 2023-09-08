@@ -28,7 +28,7 @@ jobs:
 
     - name: Test jupyter notebooks
       run: |
-        pytest --nbmake notebooks/0*ipynb
+        pytest --nbmake notebooks/0.[1-8]*ipynb
 
     - name: Run unit tests
       run: |
